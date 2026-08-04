@@ -4,9 +4,10 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Heart, Star, ShoppingBag, Eye } from "lucide-react";
+import { Heart, Star, ShoppingBag, Eye, Check } from "lucide-react";
 import type { Product } from "@/types/product";
 import { formatPrice, discountPercent } from "@/lib/utils";
+import { useCart } from "@/context/CartContext";
 
 type Props = {
   product: Product;
@@ -15,7 +16,17 @@ type Props = {
 
 export default function ProductCard({ product, index = 0 }: Props) {
   const [wishlisted, setWishlisted] = useState(false);
+  const [added, setAdded] = useState(false);
+  const { addToCart } = useCart();
   const discount = discountPercent(product.originalPrice, product.price);
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addToCart(product);
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1500);
+  };
 
   return (
     <motion.article
@@ -76,18 +87,25 @@ export default function ProductCard({ product, index = 0 }: Props) {
         {/* Quick actions on hover (desktop) */}
         <div className="absolute bottom-2 left-2 right-2 z-10 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-200 hidden md:flex gap-1.5">
           <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-            className="flex-1 flex items-center justify-center gap-1.5 bg-brand-primary text-white text-xs font-body font-semibold py-2.5 rounded-xl hover:bg-brand-accent transition-colors min-h-0"
+            onClick={handleAddToCart}
+            disabled={!product.inStock}
+            className="flex-1 flex items-center justify-center gap-1.5 bg-black text-white text-xs font-body font-bold py-2.5 rounded-xl hover:bg-neutral-800 disabled:opacity-50 transition-colors min-h-0 cursor-pointer shadow-sm"
           >
-            <ShoppingBag size={13} />
-            Quick Add
+            {added ? (
+              <>
+                <Check size={13} className="text-emerald-400" />
+                Added!
+              </>
+            ) : (
+              <>
+                <ShoppingBag size={13} />
+                Quick Add
+              </>
+            )}
           </button>
           <Link
             href={`/products/${product.slug}`}
-            className="p-2.5 bg-white rounded-xl hover:bg-brand-muted transition-colors min-h-0 min-w-0 flex items-center justify-center"
+            className="p-2.5 bg-white rounded-xl hover:bg-brand-muted transition-colors min-h-0 min-w-0 flex items-center justify-center border border-brand-border"
             title="View Details"
           >
             <Eye size={14} className="text-brand-text" />
@@ -174,10 +192,12 @@ export default function ProductCard({ product, index = 0 }: Props) {
 
         {/* Mobile Quick Add */}
         <button
-          className="w-full py-2.5 mt-1 text-xs font-body font-semibold bg-brand-primary text-white rounded-xl hover:bg-brand-accent transition-colors active:scale-95 md:hidden min-h-0"
+          onClick={handleAddToCart}
+          disabled={!product.inStock}
+          className="w-full py-2.5 mt-1 text-xs font-body font-bold bg-black text-white rounded-xl hover:bg-neutral-800 disabled:opacity-50 transition-colors active:scale-95 md:hidden min-h-0 cursor-pointer shadow-sm"
           aria-label={`Add ${product.name} to cart`}
         >
-          Add to Cart
+          {added ? "Added to Cart!" : "Add to Cart"}
         </button>
       </div>
     </motion.article>

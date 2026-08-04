@@ -49,6 +49,8 @@ type Props = {
   description: string;
 };
 
+import HeroBanner from "@/components/collection/HeroBanner";
+
 export default function CollectionClient({ products, collectionName, description }: Props) {
   const [filterOpen, setFilterOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
@@ -106,20 +108,12 @@ export default function CollectionClient({ products, collectionName, description
 
   return (
     <>
-      {/* Collection header */}
-      <div className="px-4 pt-6 pb-4 max-w-7xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-        >
-          <h1 className="font-heading text-3xl md:text-4xl font-semibold text-brand-text mb-1">
-            {collectionName}
-          </h1>
-          <p className="text-sm font-body text-brand-text-muted mb-1">{description}</p>
-          <p className="text-xs font-body text-brand-text-muted">{sorted.length} products</p>
-        </motion.div>
-      </div>
+      {/* Hero Section */}
+      <HeroBanner
+        title={collectionName}
+        subtitle={description}
+        count={sorted.length}
+      />
 
       {/* Sticky filter/sort bar */}
       <FilterSortBar

@@ -1,5 +1,16 @@
 @import "tailwindcss";
 
+@theme {
+  --color-brand-primary: #0f0f0f;
+  --color-brand-accent: #c9a96e;
+  --color-brand-accent-light: #f5edd8;
+  --color-brand-surface: #fafaf9;
+  --color-brand-muted: #f4f4f3;
+  --color-brand-border: #e8e8e6;
+  --color-brand-text: #1a1a1a;
+  --color-brand-text-muted: #6b6b6b;
+}
+
 @layer base {
   :root {
     --brand-primary: #0f0f0f;
