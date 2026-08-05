@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Star, ShieldCheck, Truck, RefreshCw, Heart, ShoppingBag, ArrowLeft, MessageCircle, Plus, Minus, Check, Ruler, Layers, Ruler as RulerIcon } from "lucide-react";
+import { Star, ShieldCheck, Truck, RefreshCw, Heart, ShoppingBag, ArrowLeft, MessageCircle, Plus, Minus, Check, Ruler, Layers } from "lucide-react";
 import type { Product } from "@/types/product";
 import type { FabricMeterage } from "@/types/cart";
 import { brand } from "@/lib/tokens";
@@ -15,18 +15,18 @@ type Props = {
   product: Product;
 };
 
-
-
 export default function ProductDetailClient({ product }: Props) {
   const { addToCart } = useCart();
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
-  // Fabric meterage derived from admin sizeDetails (for cart & WhatsApp)
-  const fabricMeterage: FabricMeterage = {
-    topMeters: product.sizeDetails?.shirt || "",
-    bottomMeters: product.sizeDetails?.bottom || "",
-    dupattaMeters: product.sizeDetails?.dupatta || "",
-  };
+  // Use product's admin-configured default meterage (if available)
+  const fabricMeterage: FabricMeterage | undefined = product.defaultMeterage
+    ? {
+        topMeters: product.defaultMeterage.topMeters,
+        bottomMeters: product.defaultMeterage.bottomMeters,
+        dupattaMeters: product.defaultMeterage.dupattaMeters,
+      }
+    : undefined;
 
   const [selectedColour, setSelectedColour] = useState<string>(
     product.colours[0]?.name || ""
@@ -37,11 +37,9 @@ export default function ProductDetailClient({ product }: Props) {
 
   const discount = discountPercent(product.originalPrice, product.price);
 
-  const summaryMeterageLabel = [
-    fabricMeterage.topMeters ? `Shirt: ${fabricMeterage.topMeters}` : null,
-    fabricMeterage.bottomMeters ? `Bottom: ${fabricMeterage.bottomMeters}` : null,
-    fabricMeterage.dupattaMeters ? `Dupatta: ${fabricMeterage.dupattaMeters}` : null,
-  ].filter(Boolean).join(" | ") || "Custom";
+  const summaryMeterageLabel = fabricMeterage
+    ? `Top: ${fabricMeterage.topMeters} | Bottom: ${fabricMeterage.bottomMeters} | Dupatta: ${fabricMeterage.dupattaMeters}`
+    : undefined;
 
   const handleAddToCart = () => {
     addToCart(
@@ -115,7 +113,7 @@ export default function ProductDetailClient({ product }: Props) {
           )}
         </div>
 
-        {/* Right: Product Details & Churidar Bits Fabric Meterage Selector */}
+        {/* Right: Product Details */}
         <div className="space-y-6">
           <div>
             <p className="text-xs font-body font-semibold text-brand-accent uppercase tracking-widest mb-1">
@@ -193,50 +191,35 @@ export default function ProductDetailClient({ product }: Props) {
             </div>
           )}
 
-          {/* Size Description (Read-Only) */}
-          {(product.sizeDetails?.shirt || product.sizeDetails?.bottom || product.sizeDetails?.dupatta) && (
+          {/* Fabric Meterage Summary (read-only, from admin defaults) */}
+          {fabricMeterage && (
             <div className="bg-white rounded-2xl p-5 border border-brand-border shadow-2xs space-y-3">
-              <div className="flex items-center gap-2 border-b border-brand-border pb-3">
+              <div className="flex items-center gap-2">
                 <Layers size={20} className="text-brand-accent" />
                 <div>
                   <h3 className="text-xs font-body font-bold text-brand-text uppercase tracking-wider">
-                    Size Description
+                    Fabric Meterage (Churidar Bits)
                   </h3>
                   <p className="text-[11px] font-body text-brand-text-muted">
-                    Fabric measurements for this set
+                    Pre-configured cut lengths for this product
                   </p>
                 </div>
               </div>
 
-              <ul className="space-y-2 pt-1">
-                {product.sizeDetails?.shirt && (
-                  <li className="flex items-center gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-brand-accent flex-shrink-0" />
-                    <span className="text-sm font-body">
-                      <span className="font-semibold text-brand-text">Shirt:</span>{" "}
-                      <span className="text-brand-text-muted">{product.sizeDetails.shirt}</span>
-                    </span>
-                  </li>
-                )}
-                {product.sizeDetails?.bottom && (
-                  <li className="flex items-center gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-brand-accent flex-shrink-0" />
-                    <span className="text-sm font-body">
-                      <span className="font-semibold text-brand-text">Bottom:</span>{" "}
-                      <span className="text-brand-text-muted">{product.sizeDetails.bottom}</span>
-                    </span>
-                  </li>
-                )}
-                {product.sizeDetails?.dupatta && (
-                  <li className="flex items-center gap-2.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-brand-accent flex-shrink-0" />
-                    <span className="text-sm font-body">
-                      <span className="font-semibold text-brand-text">Dupatta:</span>{" "}
-                      <span className="text-brand-text-muted">{product.sizeDetails.dupatta}</span>
-                    </span>
-                  </li>
-                )}
-              </ul>
+              <div className="grid grid-cols-3 gap-3 pt-1">
+                <div className="bg-brand-surface rounded-xl p-3 text-center border border-brand-border/60">
+                  <p className="text-[10px] font-body font-semibold text-brand-text-muted uppercase tracking-wider mb-0.5">Top Bit</p>
+                  <p className="text-sm font-body font-bold text-brand-text">{fabricMeterage.topMeters}</p>
+                </div>
+                <div className="bg-brand-surface rounded-xl p-3 text-center border border-brand-border/60">
+                  <p className="text-[10px] font-body font-semibold text-brand-text-muted uppercase tracking-wider mb-0.5">Bottom Bit</p>
+                  <p className="text-sm font-body font-bold text-brand-text">{fabricMeterage.bottomMeters}</p>
+                </div>
+                <div className="bg-brand-surface rounded-xl p-3 text-center border border-brand-border/60">
+                  <p className="text-[10px] font-body font-semibold text-brand-text-muted uppercase tracking-wider mb-0.5">Dupatta Bit</p>
+                  <p className="text-sm font-body font-bold text-brand-text">{fabricMeterage.dupattaMeters}</p>
+                </div>
+              </div>
             </div>
           )}
 

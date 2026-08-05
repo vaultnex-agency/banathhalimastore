@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Plus, Trash2, Loader2 } from "lucide-react";
-import type { Product, ProductColour, SizeDetails, ProductType } from "@/types/product";
+import type { Product, ProductColour, DefaultMeterage } from "@/types/product";
 
 type FormData = Omit<Product, "id" | "createdAt" | "updatedAt">;
 
@@ -15,8 +15,14 @@ type Props = {
 
 const FABRICS = ["Georgette", "Chiffon", "Cotton", "Silk", "Organza", "Velvet", "Net", "Raw Silk", "Linen", "Lawn"];
 const OCCASIONS = ["Casual", "Festive", "Wedding", "Bridal", "Formal", "Party", "Daily Wear", "Eid"];
-const SIZES = ["XS", "S", "M", "L", "XL", "XXL", "XXXL"];
+const SIZES = ["XS", "S", "M", "L", "XL", "XXL", "3XL"];
 const CATEGORIES = ["Churidar Suits", "Salwar Suits", "Straight Suits", "Anarkali", "Sharara Sets", "Co-ord Sets"];
+
+const DEFAULT_METERAGE: DefaultMeterage = {
+  topMeters: "2.5m",
+  bottomMeters: "2.5m",
+  dupattaMeters: "2.25m",
+};
 
 const DEFAULTS: FormData = {
   slug: "",
@@ -30,9 +36,7 @@ const DEFAULTS: FormData = {
   reviewCount: 0,
   images: [""],
   colours: [{ name: "", hex: "#000000" }],
-  productType: "bit-piece" as ProductType,
-  sizes: [],
-  sizeDetails: { shirt: "", bottom: "", dupatta: "" },
+  sizes: ["S", "M", "L"],
   fabric: "Georgette",
   occasion: ["Casual"],
   inStock: true,
@@ -40,6 +44,7 @@ const DEFAULTS: FormData = {
   isNew: false,
   isBestSeller: false,
   isFeatured: false,
+  defaultMeterage: DEFAULT_METERAGE,
 };
 
 export default function ProductForm({ product, mode }: Props) {
@@ -58,9 +63,7 @@ export default function ProductForm({ product, mode }: Props) {
           reviewCount: product.reviewCount,
           images: product.images,
           colours: product.colours,
-          productType: product.productType || "bit-piece",
-          sizes: product.sizes || [],
-          sizeDetails: product.sizeDetails || { shirt: "", bottom: "", dupatta: "" },
+          sizes: product.sizes,
           fabric: product.fabric,
           occasion: product.occasion,
           inStock: product.inStock,
@@ -68,6 +71,7 @@ export default function ProductForm({ product, mode }: Props) {
           isNew: product.isNew,
           isBestSeller: product.isBestSeller,
           isFeatured: product.isFeatured,
+          defaultMeterage: product.defaultMeterage || DEFAULT_METERAGE,
         }
       : DEFAULTS
   );
@@ -83,13 +87,10 @@ export default function ProductForm({ product, mode }: Props) {
     setLoading(true);
 
     // Auto-generate slug from name if empty
-    // Only send the relevant size data for the chosen product type
     const body = {
       ...form,
       slug: form.slug || form.name.toLowerCase().replace(/\s+/g, "-"),
       images: form.images.filter(Boolean),
-      sizes: form.productType === "ready-made" ? form.sizes : [],
-      sizeDetails: form.productType === "bit-piece" ? form.sizeDetails : undefined,
     };
 
     const url = mode === "create" ? "/api/products" : `/api/products/${product?.id}`;
@@ -111,11 +112,8 @@ export default function ProductForm({ product, mode }: Props) {
     }
   };
 
-  const updateSizeDetail = (field: keyof SizeDetails, value: string) =>
-    set("sizeDetails", { ...form.sizeDetails, [field]: value } as SizeDetails);
-
   const toggleSize = (s: string) =>
-    set("sizes", (form.sizes ?? []).includes(s) ? (form.sizes ?? []).filter((x) => x !== s) : [...(form.sizes ?? []), s]);
+    set("sizes", form.sizes.includes(s) ? form.sizes.filter((x) => x !== s) : [...form.sizes, s]);
 
   const toggleOccasion = (o: string) =>
     set("occasion", form.occasion.includes(o) ? form.occasion.filter((x) => x !== o) : [...form.occasion, o]);
@@ -284,67 +282,24 @@ export default function ProductForm({ product, mode }: Props) {
         </button>
       </Section>
 
-      {/* Product Type & Size */}
-      <Section title="Product Type & Size">
-        <div>
-          <Label>Product Type</Label>
-          <div className="flex gap-2">
-            {(["bit-piece", "ready-made"] as const).map((pt) => (
-              <button
-                key={pt}
-                type="button"
-                onClick={() => set("productType", pt)}
-                className={`flex-1 py-3 text-sm font-body font-semibold border rounded-xl transition-all min-h-0 ${
-                  form.productType === pt
-                    ? "bg-brand-primary text-white border-brand-primary"
-                    : "border-brand-border text-brand-text hover:border-brand-primary"
-                }`}
-              >
-                {pt === "bit-piece" ? "Bit Piece" : "Ready-Made"}
-              </button>
-            ))}
-          </div>
+      {/* Variants */}
+      <Section title="Sizes">
+        <div className="flex flex-wrap gap-2">
+          {SIZES.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => toggleSize(s)}
+              className={`px-3 py-1.5 text-sm font-body border rounded-xl transition-all min-h-0 ${
+                form.sizes.includes(s)
+                  ? "bg-brand-primary text-white border-brand-primary"
+                  : "border-brand-border"
+              }`}
+            >
+              {s}
+            </button>
+          ))}
         </div>
-
-        {form.productType === "bit-piece" && (
-          <>
-            <p className="text-xs font-body text-brand-text-muted">Enter the size/measurement for each piece (e.g. &quot;2.5 m&quot;, &quot;Free Size&quot;, &quot;38 inches&quot;). Leave empty if not applicable.</p>
-            <div>
-              <Label>Shirt</Label>
-              <Input value={(form.sizeDetails as SizeDetails)?.shirt || ""} onChange={(v) => updateSizeDetail("shirt", v)} placeholder="e.g. 2.5 m" />
-            </div>
-            <div>
-              <Label>Bottom</Label>
-              <Input value={(form.sizeDetails as SizeDetails)?.bottom || ""} onChange={(v) => updateSizeDetail("bottom", v)} placeholder="e.g. 2.5 m" />
-            </div>
-            <div>
-              <Label>Dupatta</Label>
-              <Input value={(form.sizeDetails as SizeDetails)?.dupatta || ""} onChange={(v) => updateSizeDetail("dupatta", v)} placeholder="e.g. 2.25 m" />
-            </div>
-          </>
-        )}
-
-        {form.productType === "ready-made" && (
-          <>
-            <Label>Sizes</Label>
-            <div className="flex flex-wrap gap-2">
-              {SIZES.map((s) => (
-                <button
-                  key={s}
-                  type="button"
-                  onClick={() => toggleSize(s)}
-                  className={`px-3 py-1.5 text-sm font-body border rounded-xl transition-all min-h-0 ${
-                    (form.sizes ?? []).includes(s)
-                      ? "bg-brand-primary text-white border-brand-primary"
-                      : "border-brand-border"
-                  }`}
-                >
-                  {s}
-                </button>
-              ))}
-            </div>
-          </>
-        )}
       </Section>
 
       {/* Colours */}
@@ -383,6 +338,52 @@ export default function ProductForm({ product, mode }: Props) {
         </button>
       </Section>
 
+      {/* Default Fabric Meterage */}
+      <Section title="Default Fabric Meterage (Churidar Bits)">
+        <p className="text-xs font-body text-brand-text-muted -mt-1">Set the default cut lengths in meters for Top, Bottom & Dupatta. Customers will see these values on the product page.</p>
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <Label>Top Bit (Meters)</Label>
+            <Input
+              value={form.defaultMeterage?.topMeters || ""}
+              onChange={(v) =>
+                set("defaultMeterage", {
+                  ...(form.defaultMeterage || DEFAULT_METERAGE),
+                  topMeters: v,
+                })
+              }
+              placeholder="e.g. 2.5m"
+            />
+          </div>
+          <div>
+            <Label>Bottom Bit (Meters)</Label>
+            <Input
+              value={form.defaultMeterage?.bottomMeters || ""}
+              onChange={(v) =>
+                set("defaultMeterage", {
+                  ...(form.defaultMeterage || DEFAULT_METERAGE),
+                  bottomMeters: v,
+                })
+              }
+              placeholder="e.g. 2.5m"
+            />
+          </div>
+          <div>
+            <Label>Dupatta Bit (Meters)</Label>
+            <Input
+              value={form.defaultMeterage?.dupattaMeters || ""}
+              onChange={(v) =>
+                set("defaultMeterage", {
+                  ...(form.defaultMeterage || DEFAULT_METERAGE),
+                  dupattaMeters: v,
+                })
+              }
+              placeholder="e.g. 2.25m"
+            />
+          </div>
+        </div>
+      </Section>
+
       {/* Details */}
       <Section title="Product Details">
         <div>
@@ -412,6 +413,54 @@ export default function ProductForm({ product, mode }: Props) {
                 {o}
               </button>
             ))}
+          </div>
+        </div>
+      </Section>
+
+      {/* Default Fabric Meterage */}
+      <Section title="Default Fabric Meterage (Churidar Bits)">
+        <p className="text-xs font-body text-brand-text-muted -mt-1">
+          Set the default cut lengths displayed to customers. These values are shown read-only on the product page.
+        </p>
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <Label>Top Bit (meters)</Label>
+            <Input
+              value={form.defaultMeterage?.topMeters || ""}
+              onChange={(v) =>
+                set("defaultMeterage", {
+                  ...(form.defaultMeterage || { topMeters: "", bottomMeters: "", dupattaMeters: "" }),
+                  topMeters: v,
+                })
+              }
+              placeholder="e.g. 2.5m"
+            />
+          </div>
+          <div>
+            <Label>Bottom Bit (meters)</Label>
+            <Input
+              value={form.defaultMeterage?.bottomMeters || ""}
+              onChange={(v) =>
+                set("defaultMeterage", {
+                  ...(form.defaultMeterage || { topMeters: "", bottomMeters: "", dupattaMeters: "" }),
+                  bottomMeters: v,
+                })
+              }
+              placeholder="e.g. 2.5m"
+            />
+          </div>
+          <div>
+            <Label>Dupatta Bit (meters)</Label>
+            <Input
+              value={form.defaultMeterage?.dupattaMeters || ""}
+              onChange={(v) =>
+                set("defaultMeterage", {
+                  ...(form.defaultMeterage || { topMeters: "", bottomMeters: "", dupattaMeters: "" }),
+                  dupattaMeters: v,
+                })
+              }
+              placeholder="e.g. 2.25m"
+            />
           </div>
         </div>
       </Section>

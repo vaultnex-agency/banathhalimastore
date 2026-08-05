@@ -5,13 +5,11 @@ export type ProductColour = {
   hex: string;
 };
 
-export type SizeDetails = {
-  shirt?: string;
-  bottom?: string;
-  dupatta?: string;
+export type DefaultMeterage = {
+  topMeters: string;
+  bottomMeters: string;
+  dupattaMeters: string;
 };
-
-export type ProductType = "bit-piece" | "ready-made";
 
 export type Product = {
   id: string;
@@ -26,9 +24,7 @@ export type Product = {
   reviewCount: number;
   images: string[];          // array of public-folder paths or URLs
   colours: ProductColour[];
-  productType?: ProductType;
-  sizes?: string[];           // used when productType is "ready-made"
-  sizeDetails?: SizeDetails;  // used when productType is "bit-piece"
+  sizes: string[];
   fabric: string;
   occasion: string[];
   inStock: boolean;
@@ -36,6 +32,7 @@ export type Product = {
   isNew: boolean;
   isBestSeller: boolean;
   isFeatured: boolean;
+  defaultMeterage?: DefaultMeterage; // admin-configured default fabric cut lengths
   createdAt: string;         // ISO date string
   updatedAt: string;
 };
