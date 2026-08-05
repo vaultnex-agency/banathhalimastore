@@ -22,7 +22,6 @@ type Props = {
   filters: FilterState;
 };
 
-const SIZES = ["XS", "S", "M", "L", "XL", "XXL", "3XL"];
 const COLOURS = [
   { name: "Teal", hex: "#1a7a7a" },
   { name: "Rose", hex: "#d4829e" },
@@ -168,24 +167,7 @@ export default function FilterDrawer({ isOpen, onClose, onApply, filters: initia
                 </div>
               </AccordionSection>
 
-              {/* Size */}
-              <AccordionSection title="Size">
-                <div className="flex flex-wrap gap-2">
-                  {SIZES.map((s) => (
-                    <button
-                      key={s}
-                      onClick={() => toggle("sizes", s)}
-                      className={`px-3 py-1.5 text-sm font-body border rounded-xl transition-all min-h-0 ${
-                        local.sizes.includes(s)
-                          ? "bg-brand-primary text-white border-brand-primary"
-                          : "border-brand-border text-brand-text hover:border-brand-primary"
-                      }`}
-                    >
-                      {s}
-                    </button>
-                  ))}
-                </div>
-              </AccordionSection>
+
 
               {/* Colour */}
               <AccordionSection title="Colour">

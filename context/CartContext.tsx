@@ -70,7 +70,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     quantity: number = 1,
     customMeasurements?: CustomMeasurements
   ) => {
-    const size = selectedSize || product.sizes[0] || "Custom";
+    const size = selectedSize || product.sizes?.[0] || "Custom";
     const colour = selectedColour || product.colours[0]?.name || "";
     const measKey = customMeasurements
       ? `${customMeasurements.topMeters || customMeasurements.top || ""}-${customMeasurements.bottomMeters || customMeasurements.bottom || ""}-${customMeasurements.dupattaMeters || customMeasurements.dupatta || ""}`

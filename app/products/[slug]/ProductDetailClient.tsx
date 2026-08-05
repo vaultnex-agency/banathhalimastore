@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Star, ShieldCheck, Truck, RefreshCw, Heart, ShoppingBag, ArrowLeft, MessageCircle, Plus, Minus, Check, Ruler, Layers } from "lucide-react";
+import { Star, ShieldCheck, Truck, RefreshCw, Heart, ShoppingBag, ArrowLeft, MessageCircle, Plus, Minus, Check, Ruler, Layers, Ruler as RulerIcon } from "lucide-react";
 import type { Product } from "@/types/product";
 import type { FabricMeterage } from "@/types/cart";
 import { brand } from "@/lib/tokens";
@@ -15,20 +15,18 @@ type Props = {
   product: Product;
 };
 
-const TOP_METER_PRESETS = ["2.25m", "2.5m", "2.75m", "3.0m"];
-const BOTTOM_METER_PRESETS = ["2.0m", "2.25m", "2.5m", "3.0m"];
-const DUPATTA_METER_PRESETS = ["2.0m", "2.25m", "2.5m"];
+
 
 export default function ProductDetailClient({ product }: Props) {
   const { addToCart } = useCart();
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
-  // Meterage selections for Churidar Bits
-  const [fabricMeterage, setFabricMeterage] = useState<FabricMeterage>({
-    topMeters: "2.5m",
-    bottomMeters: "2.5m",
-    dupattaMeters: "2.25m",
-  });
+  // Fabric meterage derived from admin sizeDetails (for cart & WhatsApp)
+  const fabricMeterage: FabricMeterage = {
+    topMeters: product.sizeDetails?.shirt || "",
+    bottomMeters: product.sizeDetails?.bottom || "",
+    dupattaMeters: product.sizeDetails?.dupatta || "",
+  };
 
   const [selectedColour, setSelectedColour] = useState<string>(
     product.colours[0]?.name || ""
@@ -39,11 +37,11 @@ export default function ProductDetailClient({ product }: Props) {
 
   const discount = discountPercent(product.originalPrice, product.price);
 
-  const handleMeterChange = (field: keyof FabricMeterage, value: string) => {
-    setFabricMeterage((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const summaryMeterageLabel = `Top: ${fabricMeterage.topMeters || "2.5m"} | Bottom: ${fabricMeterage.bottomMeters || "2.5m"} | Dupatta: ${fabricMeterage.dupattaMeters || "2.25m"}`;
+  const summaryMeterageLabel = [
+    fabricMeterage.topMeters ? `Shirt: ${fabricMeterage.topMeters}` : null,
+    fabricMeterage.bottomMeters ? `Bottom: ${fabricMeterage.bottomMeters}` : null,
+    fabricMeterage.dupattaMeters ? `Dupatta: ${fabricMeterage.dupattaMeters}` : null,
+  ].filter(Boolean).join(" | ") || "Custom";
 
   const handleAddToCart = () => {
     addToCart(
@@ -195,138 +193,52 @@ export default function ProductDetailClient({ product }: Props) {
             </div>
           )}
 
-          {/* Churidar Bits Fabric Meterage Input Box */}
-          <div className="bg-white rounded-2xl p-5 border border-brand-border shadow-2xs space-y-4">
-            <div className="flex items-center justify-between border-b border-brand-border pb-3">
-              <div className="flex items-center gap-2">
+          {/* Size Description (Read-Only) */}
+          {(product.sizeDetails?.shirt || product.sizeDetails?.bottom || product.sizeDetails?.dupatta) && (
+            <div className="bg-white rounded-2xl p-5 border border-brand-border shadow-2xs space-y-3">
+              <div className="flex items-center gap-2 border-b border-brand-border pb-3">
                 <Layers size={20} className="text-brand-accent" />
                 <div>
                   <h3 className="text-xs font-body font-bold text-brand-text uppercase tracking-wider">
-                    Fabric Meterage (Churidar Bits)
+                    Size Description
                   </h3>
                   <p className="text-[11px] font-body text-brand-text-muted">
-                    Select or enter custom cut length in meters for Top, Bottom &amp; Dupatta
+                    Fabric measurements for this set
                   </p>
                 </div>
               </div>
+
+              <ul className="space-y-2 pt-1">
+                {product.sizeDetails?.shirt && (
+                  <li className="flex items-center gap-2.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-brand-accent flex-shrink-0" />
+                    <span className="text-sm font-body">
+                      <span className="font-semibold text-brand-text">Shirt:</span>{" "}
+                      <span className="text-brand-text-muted">{product.sizeDetails.shirt}</span>
+                    </span>
+                  </li>
+                )}
+                {product.sizeDetails?.bottom && (
+                  <li className="flex items-center gap-2.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-brand-accent flex-shrink-0" />
+                    <span className="text-sm font-body">
+                      <span className="font-semibold text-brand-text">Bottom:</span>{" "}
+                      <span className="text-brand-text-muted">{product.sizeDetails.bottom}</span>
+                    </span>
+                  </li>
+                )}
+                {product.sizeDetails?.dupatta && (
+                  <li className="flex items-center gap-2.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-brand-accent flex-shrink-0" />
+                    <span className="text-sm font-body">
+                      <span className="font-semibold text-brand-text">Dupatta:</span>{" "}
+                      <span className="text-brand-text-muted">{product.sizeDetails.dupatta}</span>
+                    </span>
+                  </li>
+                )}
+              </ul>
             </div>
-
-            <div className="space-y-4 pt-1">
-              {/* 1. TOP BIT METERS */}
-              <div>
-                <div className="flex justify-between items-center mb-1.5">
-                  <label className="text-xs font-body font-bold text-brand-text">
-                    1. Top Bit Fabric Length (Meters):
-                  </label>
-                  <span className="text-xs font-body font-bold text-brand-accent">
-                    {fabricMeterage.topMeters || "2.5m"}
-                  </span>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2">
-                  {TOP_METER_PRESETS.map((m) => (
-                    <button
-                      key={m}
-                      type="button"
-                      onClick={() => handleMeterChange("topMeters", m)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-body font-bold border transition-all ${
-                        fabricMeterage.topMeters === m
-                          ? "bg-black text-white border-black shadow-xs scale-105"
-                          : "border-brand-border text-brand-text hover:border-black bg-brand-surface"
-                      }`}
-                    >
-                      {m}
-                    </button>
-                  ))}
-                  <div className="flex-1 min-w-[120px]">
-                    <input
-                      type="text"
-                      value={fabricMeterage.topMeters || ""}
-                      onChange={(e) => handleMeterChange("topMeters", e.target.value)}
-                      placeholder="e.g. 2.75m or 3 Meters"
-                      className="w-full px-3 py-1.5 rounded-xl border border-brand-border text-xs font-body bg-brand-surface focus:outline-none focus:border-black focus:ring-1 focus:ring-black"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* 2. BOTTOM BIT METERS */}
-              <div>
-                <div className="flex justify-between items-center mb-1.5">
-                  <label className="text-xs font-body font-bold text-brand-text">
-                    2. Bottom Bit Fabric Length (Meters):
-                  </label>
-                  <span className="text-xs font-body font-bold text-brand-accent">
-                    {fabricMeterage.bottomMeters || "2.5m"}
-                  </span>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2">
-                  {BOTTOM_METER_PRESETS.map((m) => (
-                    <button
-                      key={m}
-                      type="button"
-                      onClick={() => handleMeterChange("bottomMeters", m)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-body font-bold border transition-all ${
-                        fabricMeterage.bottomMeters === m
-                          ? "bg-black text-white border-black shadow-xs scale-105"
-                          : "border-brand-border text-brand-text hover:border-black bg-brand-surface"
-                      }`}
-                    >
-                      {m}
-                    </button>
-                  ))}
-                  <div className="flex-1 min-w-[120px]">
-                    <input
-                      type="text"
-                      value={fabricMeterage.bottomMeters || ""}
-                      onChange={(e) => handleMeterChange("bottomMeters", e.target.value)}
-                      placeholder="e.g. 2.5m or 3 Meters"
-                      className="w-full px-3 py-1.5 rounded-xl border border-brand-border text-xs font-body bg-brand-surface focus:outline-none focus:border-black focus:ring-1 focus:ring-black"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* 3. DUPATTA BIT METERS */}
-              <div>
-                <div className="flex justify-between items-center mb-1.5">
-                  <label className="text-xs font-body font-bold text-brand-text">
-                    3. Dupatta Bit Fabric Length (Meters):
-                  </label>
-                  <span className="text-xs font-body font-bold text-brand-accent">
-                    {fabricMeterage.dupattaMeters || "2.25m"}
-                  </span>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2">
-                  {DUPATTA_METER_PRESETS.map((m) => (
-                    <button
-                      key={m}
-                      type="button"
-                      onClick={() => handleMeterChange("dupattaMeters", m)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-body font-bold border transition-all ${
-                        fabricMeterage.dupattaMeters === m
-                          ? "bg-black text-white border-black shadow-xs scale-105"
-                          : "border-brand-border text-brand-text hover:border-black bg-brand-surface"
-                      }`}
-                    >
-                      {m}
-                    </button>
-                  ))}
-                  <div className="flex-1 min-w-[120px]">
-                    <input
-                      type="text"
-                      value={fabricMeterage.dupattaMeters || ""}
-                      onChange={(e) => handleMeterChange("dupattaMeters", e.target.value)}
-                      placeholder="e.g. 2.25m or 2.5 Meters"
-                      className="w-full px-3 py-1.5 rounded-xl border border-brand-border text-xs font-body bg-brand-surface focus:outline-none focus:border-black focus:ring-1 focus:ring-black"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          )}
 
           {/* Quantity Selector */}
           <div>

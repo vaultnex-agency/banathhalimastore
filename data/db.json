@@ -29,13 +29,12 @@
           "hex": "#7ab4d4"
         }
       ],
-      "sizes": [
-        "XS",
-        "S",
-        "M",
-        "L",
-        "XL"
-      ],
+      "productType": "bit-piece",
+      "sizeDetails": {
+        "shirt": "2.5 m",
+        "bottom": "2.5 m",
+        "dupatta": "2.25 m"
+      },
       "fabric": "Chiffon",
       "occasion": [
         "Casual",
@@ -79,13 +78,12 @@
           "hex": "#fffdd0"
         }
       ],
-      "sizes": [
-        "S",
-        "M",
-        "L",
-        "XL",
-        "XXL"
-      ],
+      "productType": "bit-piece",
+      "sizeDetails": {
+        "shirt": "2.5 m",
+        "bottom": "2.5 m",
+        "dupatta": "2.25 m"
+      },
       "fabric": "Silk",
       "occasion": [
         "Eid",
@@ -125,12 +123,12 @@
           "hex": "#800020"
         }
       ],
-      "sizes": [
-        "S",
-        "M",
-        "L",
-        "XL"
-      ],
+      "productType": "bit-piece",
+      "sizeDetails": {
+        "shirt": "2.75 m",
+        "bottom": "2.5 m",
+        "dupatta": "2.5 m"
+      },
       "fabric": "Net",
       "occasion": [
         "Wedding",
@@ -178,15 +176,12 @@
           "hex": "#b8a9c9"
         }
       ],
-      "sizes": [
-        "XS",
-        "S",
-        "M",
-        "L",
-        "XL",
-        "XXL",
-        "3XL"
-      ],
+      "productType": "bit-piece",
+      "sizeDetails": {
+        "shirt": "2.5 m",
+        "bottom": "2.5 m",
+        "dupatta": "2.25 m"
+      },
       "fabric": "Cotton",
       "occasion": [
         "Casual",
@@ -225,12 +220,12 @@
           "hex": "#7a9e7e"
         }
       ],
-      "sizes": [
-        "XS",
-        "S",
-        "M",
-        "L"
-      ],
+      "productType": "bit-piece",
+      "sizeDetails": {
+        "shirt": "2.5 m",
+        "bottom": "2.25 m",
+        "dupatta": "2.25 m"
+      },
       "fabric": "Raw Silk",
       "occasion": [
         "Casual",
@@ -269,12 +264,12 @@
           "hex": "#c9a96e"
         }
       ],
-      "sizes": [
-        "S",
-        "M",
-        "L",
-        "XL"
-      ],
+      "productType": "bit-piece",
+      "sizeDetails": {
+        "shirt": "2.75 m",
+        "bottom": "2.5 m",
+        "dupatta": "2.25 m"
+      },
       "fabric": "Net",
       "occasion": [
         "Party",

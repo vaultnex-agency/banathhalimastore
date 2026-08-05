@@ -63,7 +63,6 @@ export default function CollectionClient({ products, collectionName, description
   const filtered = useMemo(() => {
     return products.filter((p) => {
       if (p.price < filters.priceMin || p.price > filters.priceMax) return false;
-      if (filters.sizes.length && !filters.sizes.some((s) => p.sizes.includes(s))) return false;
       if (filters.colours.length && !filters.colours.some((c) => p.colours.some((pc) => pc.name === c))) return false;
       if (filters.fabrics.length && !filters.fabrics.includes(p.fabric)) return false;
       if (filters.occasions.length && !filters.occasions.some((o) => p.occasion.includes(o))) return false;
@@ -91,7 +90,6 @@ export default function CollectionClient({ products, collectionName, description
   const hasMore = visible.length < sorted.length;
 
   const activeFilterCount = [
-    filters.sizes.length,
     filters.colours.length,
     filters.fabrics.length,
     filters.occasions.length,

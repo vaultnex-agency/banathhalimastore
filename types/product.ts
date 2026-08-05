@@ -5,6 +5,14 @@ export type ProductColour = {
   hex: string;
 };
 
+export type SizeDetails = {
+  shirt?: string;
+  bottom?: string;
+  dupatta?: string;
+};
+
+export type ProductType = "bit-piece" | "ready-made";
+
 export type Product = {
   id: string;
   slug: string;
@@ -18,7 +26,9 @@ export type Product = {
   reviewCount: number;
   images: string[];          // array of public-folder paths or URLs
   colours: ProductColour[];
-  sizes: string[];
+  productType?: ProductType;
+  sizes?: string[];           // used when productType is "ready-made"
+  sizeDetails?: SizeDetails;  // used when productType is "bit-piece"
   fabric: string;
   occasion: string[];
   inStock: boolean;
