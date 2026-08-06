@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import { Plus, Trash2, Loader2 } from "lucide-react";
-import type { Product, ProductColour, DefaultMeterage } from "@/types/product";
+import type { Product, ProductColour, DefaultMeterage, ProductType, SizeDetails } from "@/types/product";
 
 type FormData = Omit<Product, "id" | "createdAt" | "updatedAt">;
 
@@ -15,13 +14,19 @@ type Props = {
 
 const FABRICS = ["Georgette", "Chiffon", "Cotton", "Silk", "Organza", "Velvet", "Net", "Raw Silk", "Linen", "Lawn"];
 const OCCASIONS = ["Casual", "Festive", "Wedding", "Bridal", "Formal", "Party", "Daily Wear", "Eid"];
-const SIZES = ["XS", "S", "M", "L", "XL", "XXL", "3XL"];
+const SIZES = ["XS", "S", "M", "L", "XL", "XXL", "XXXL"];
 const CATEGORIES = ["Churidar Suits", "Salwar Suits", "Straight Suits", "Anarkali", "Sharara Sets", "Co-ord Sets"];
 
 const DEFAULT_METERAGE: DefaultMeterage = {
   topMeters: "2.5m",
   bottomMeters: "2.5m",
   dupattaMeters: "2.25m",
+};
+
+const DEFAULT_SIZE_DETAILS: SizeDetails = {
+  shirt: "",
+  bottom: "",
+  dupatta: "",
 };
 
 const DEFAULTS: FormData = {
@@ -36,7 +41,7 @@ const DEFAULTS: FormData = {
   reviewCount: 0,
   images: [""],
   colours: [{ name: "", hex: "#000000" }],
-  sizes: ["S", "M", "L"],
+  sizes: [],
   fabric: "Georgette",
   occasion: ["Casual"],
   inStock: true,
@@ -44,8 +49,53 @@ const DEFAULTS: FormData = {
   isNew: false,
   isBestSeller: false,
   isFeatured: false,
+  productType: "bit-piece",
+  sizeDetails: DEFAULT_SIZE_DETAILS,
   defaultMeterage: DEFAULT_METERAGE,
 };
+
+/* ── Stable sub-components (defined outside to avoid remount on every render) ── */
+
+function Section({ title, children, style }: { title: string; children: React.ReactNode; style?: React.CSSProperties }) {
+  return (
+    <div className="bg-white border border-brand-border rounded-2xl p-5 space-y-4" style={style}>
+      <h2 className="font-body font-semibold text-brand-text text-sm">{title}</h2>
+      {children}
+    </div>
+  );
+}
+
+function Label({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="block text-xs font-body font-medium text-brand-text-muted mb-1.5">{children}</span>
+  );
+}
+
+function FormInput({
+  value,
+  onChange,
+  type = "text",
+  placeholder,
+  className = "",
+}: {
+  value: string | number;
+  onChange: (v: string) => void;
+  type?: string;
+  placeholder?: string;
+  className?: string;
+}) {
+  return (
+    <input
+      type={type}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      className={`w-full px-3.5 py-3 border border-brand-border rounded-xl text-sm font-body bg-brand-surface outline-none focus:border-brand-accent transition-colors ${className}`}
+    />
+  );
+}
+
+/* ── Main form component ── */
 
 export default function ProductForm({ product, mode }: Props) {
   const router = useRouter();
@@ -63,7 +113,7 @@ export default function ProductForm({ product, mode }: Props) {
           reviewCount: product.reviewCount,
           images: product.images,
           colours: product.colours,
-          sizes: product.sizes,
+          sizes: product.sizes || [],
           fabric: product.fabric,
           occasion: product.occasion,
           inStock: product.inStock,
@@ -71,6 +121,8 @@ export default function ProductForm({ product, mode }: Props) {
           isNew: product.isNew,
           isBestSeller: product.isBestSeller,
           isFeatured: product.isFeatured,
+          productType: product.productType || "bit-piece",
+          sizeDetails: product.sizeDetails || DEFAULT_SIZE_DETAILS,
           defaultMeterage: product.defaultMeterage || DEFAULT_METERAGE,
         }
       : DEFAULTS
@@ -78,8 +130,10 @@ export default function ProductForm({ product, mode }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const set = (key: keyof FormData, value: unknown) =>
-    setForm((f) => ({ ...f, [key]: value }));
+  const set = useCallback(
+    (key: keyof FormData, value: unknown) => setForm((f) => ({ ...f, [key]: value })),
+    []
+  );
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,10 +141,21 @@ export default function ProductForm({ product, mode }: Props) {
     setLoading(true);
 
     // Auto-generate slug from name if empty
+    // Only include relevant size data based on productType
+    const isBitPiece = form.productType === "bit-piece";
     const body = {
       ...form,
       slug: form.slug || form.name.toLowerCase().replace(/\s+/g, "-"),
       images: form.images.filter(Boolean),
+      sizes: isBitPiece ? [] : form.sizes,
+      sizeDetails: isBitPiece ? form.sizeDetails : undefined,
+      defaultMeterage: isBitPiece
+        ? {
+            topMeters: form.sizeDetails?.shirt || "",
+            bottomMeters: form.sizeDetails?.bottom || "",
+            dupattaMeters: form.sizeDetails?.dupatta || "",
+          }
+        : undefined,
     };
 
     const url = mode === "create" ? "/api/products" : `/api/products/${product?.id}`;
@@ -124,38 +189,7 @@ export default function ProductForm({ product, mode }: Props) {
     set("colours", next);
   };
 
-  const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-    <div className="bg-white border border-brand-border rounded-2xl p-5 space-y-4">
-      <h2 className="font-body font-semibold text-brand-text text-sm">{title}</h2>
-      {children}
-    </div>
-  );
-
-  const Label = ({ children }: { children: React.ReactNode }) => (
-    <span className="block text-xs font-body font-medium text-brand-text-muted mb-1.5">{children}</span>
-  );
-
-  const Input = ({
-    value,
-    onChange,
-    type = "text",
-    placeholder,
-    className = "",
-  }: {
-    value: string | number;
-    onChange: (v: string) => void;
-    type?: string;
-    placeholder?: string;
-    className?: string;
-  }) => (
-    <input
-      type={type}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      className={`w-full px-3.5 py-3 border border-brand-border rounded-xl text-sm font-body bg-brand-surface outline-none focus:border-brand-accent transition-colors ${className}`}
-    />
-  );
+  const isBitPiece = form.productType === "bit-piece";
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-2xl">
@@ -188,11 +222,11 @@ export default function ProductForm({ product, mode }: Props) {
       <Section title="Basic Information">
         <div>
           <Label>Product Name *</Label>
-          <Input value={form.name} onChange={(v) => set("name", v)} placeholder="e.g. Zara Embroidered Churidar Set" />
+          <FormInput value={form.name} onChange={(v) => set("name", v)} placeholder="e.g. Zara Embroidered Churidar Set" />
         </div>
         <div>
           <Label>URL Slug (auto-generated if empty)</Label>
-          <Input value={form.slug} onChange={(v) => set("slug", v)} placeholder="zara-embroidered-churidar-set" />
+          <FormInput value={form.slug} onChange={(v) => set("slug", v)} placeholder="zara-embroidered-churidar-set" />
         </div>
         <div>
           <Label>Description *</Label>
@@ -221,17 +255,17 @@ export default function ProductForm({ product, mode }: Props) {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label>Sale Price (AED) *</Label>
-            <Input type="number" value={form.price} onChange={(v) => set("price", Number(v))} />
+            <FormInput type="number" value={form.price} onChange={(v) => set("price", Number(v))} />
           </div>
           <div>
             <Label>Original Price (AED)</Label>
-            <Input type="number" value={form.originalPrice} onChange={(v) => set("originalPrice", Number(v))} />
+            <FormInput type="number" value={form.originalPrice} onChange={(v) => set("originalPrice", Number(v))} />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
             <Label>Stock Count</Label>
-            <Input type="number" value={form.stockCount} onChange={(v) => set("stockCount", Number(v))} />
+            <FormInput type="number" value={form.stockCount} onChange={(v) => set("stockCount", Number(v))} />
           </div>
           <div className="flex items-center gap-3 pt-5">
             <label className="flex items-center gap-2 cursor-pointer">
@@ -252,7 +286,7 @@ export default function ProductForm({ product, mode }: Props) {
         <p className="text-xs font-body text-brand-text-muted -mt-1">Enter image URLs or /public paths (e.g. /product-teal.png)</p>
         {form.images.map((img, i) => (
           <div key={i} className="flex gap-2">
-            <Input
+            <FormInput
               value={img}
               onChange={(v) => {
                 const next = [...form.images];
@@ -282,8 +316,86 @@ export default function ProductForm({ product, mode }: Props) {
         </button>
       </Section>
 
-      {/* Variants */}
-      <Section title="Sizes">
+      {/* Product Type — radio buttons only update state, no navigation */}
+      <Section title="Product Type">
+        <div className="flex gap-4">
+          {(["bit-piece", "ready-made"] as const).map((type) => (
+            <label key={type} className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="productType"
+                value={type}
+                checked={form.productType === type}
+                onChange={() => set("productType", type)}
+                className="w-4 h-4 accent-brand-primary"
+              />
+              <span className="text-sm font-body font-medium">
+                {type === "bit-piece" ? "Bit Piece" : "Ready-Made"}
+              </span>
+            </label>
+          ))}
+        </div>
+      </Section>
+
+      {/*
+        Both size sections are always mounted in the DOM.
+        We toggle visibility via display:none so React never unmounts/remounts
+        them — this prevents scroll position reset, focus loss, and layout shift.
+      */}
+      <Section
+        title="Size Description (Bit Piece)"
+        style={{ display: isBitPiece ? undefined : "none" }}
+      >
+        <p className="text-xs font-body text-brand-text-muted -mt-1">
+          Enter the fabric measurements for Shirt, Bottom &amp; Dupatta. These are shown read-only on the product page.
+        </p>
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <Label>Shirt</Label>
+            <FormInput
+              value={form.sizeDetails?.shirt || ""}
+              onChange={(v) =>
+                set("sizeDetails", {
+                  ...(form.sizeDetails || DEFAULT_SIZE_DETAILS),
+                  shirt: v,
+                })
+              }
+              placeholder="e.g. 2.5 m"
+            />
+          </div>
+          <div>
+            <Label>Bottom</Label>
+            <FormInput
+              value={form.sizeDetails?.bottom || ""}
+              onChange={(v) =>
+                set("sizeDetails", {
+                  ...(form.sizeDetails || DEFAULT_SIZE_DETAILS),
+                  bottom: v,
+                })
+              }
+              placeholder="e.g. 2.5 m"
+            />
+          </div>
+          <div>
+            <Label>Dupatta</Label>
+            <FormInput
+              value={form.sizeDetails?.dupatta || ""}
+              onChange={(v) =>
+                set("sizeDetails", {
+                  ...(form.sizeDetails || DEFAULT_SIZE_DETAILS),
+                  dupatta: v,
+                })
+              }
+              placeholder="e.g. 2.25 m"
+            />
+          </div>
+        </div>
+      </Section>
+
+      <Section
+        title="Sizes (Ready-Made)"
+        style={{ display: isBitPiece ? "none" : undefined }}
+      >
         <div className="flex flex-wrap gap-2">
           {SIZES.map((s) => (
             <button
@@ -312,7 +424,7 @@ export default function ProductForm({ product, mode }: Props) {
               onChange={(e) => updateColour(i, "hex", e.target.value)}
               className="w-10 h-10 rounded-lg border border-brand-border cursor-pointer flex-shrink-0"
             />
-            <Input
+            <FormInput
               value={c.name}
               onChange={(v) => updateColour(i, "name", v)}
               placeholder="Colour name (e.g. Teal)"
@@ -336,52 +448,6 @@ export default function ProductForm({ product, mode }: Props) {
         >
           <Plus size={14} /> Add colour
         </button>
-      </Section>
-
-      {/* Default Fabric Meterage */}
-      <Section title="Default Fabric Meterage (Churidar Bits)">
-        <p className="text-xs font-body text-brand-text-muted -mt-1">Set the default cut lengths in meters for Top, Bottom & Dupatta. Customers will see these values on the product page.</p>
-        <div className="grid grid-cols-3 gap-3">
-          <div>
-            <Label>Top Bit (Meters)</Label>
-            <Input
-              value={form.defaultMeterage?.topMeters || ""}
-              onChange={(v) =>
-                set("defaultMeterage", {
-                  ...(form.defaultMeterage || DEFAULT_METERAGE),
-                  topMeters: v,
-                })
-              }
-              placeholder="e.g. 2.5m"
-            />
-          </div>
-          <div>
-            <Label>Bottom Bit (Meters)</Label>
-            <Input
-              value={form.defaultMeterage?.bottomMeters || ""}
-              onChange={(v) =>
-                set("defaultMeterage", {
-                  ...(form.defaultMeterage || DEFAULT_METERAGE),
-                  bottomMeters: v,
-                })
-              }
-              placeholder="e.g. 2.5m"
-            />
-          </div>
-          <div>
-            <Label>Dupatta Bit (Meters)</Label>
-            <Input
-              value={form.defaultMeterage?.dupattaMeters || ""}
-              onChange={(v) =>
-                set("defaultMeterage", {
-                  ...(form.defaultMeterage || DEFAULT_METERAGE),
-                  dupattaMeters: v,
-                })
-              }
-              placeholder="e.g. 2.25m"
-            />
-          </div>
-        </div>
       </Section>
 
       {/* Details */}
@@ -417,53 +483,7 @@ export default function ProductForm({ product, mode }: Props) {
         </div>
       </Section>
 
-      {/* Default Fabric Meterage */}
-      <Section title="Default Fabric Meterage (Churidar Bits)">
-        <p className="text-xs font-body text-brand-text-muted -mt-1">
-          Set the default cut lengths displayed to customers. These values are shown read-only on the product page.
-        </p>
-        <div className="grid grid-cols-3 gap-3">
-          <div>
-            <Label>Top Bit (meters)</Label>
-            <Input
-              value={form.defaultMeterage?.topMeters || ""}
-              onChange={(v) =>
-                set("defaultMeterage", {
-                  ...(form.defaultMeterage || { topMeters: "", bottomMeters: "", dupattaMeters: "" }),
-                  topMeters: v,
-                })
-              }
-              placeholder="e.g. 2.5m"
-            />
-          </div>
-          <div>
-            <Label>Bottom Bit (meters)</Label>
-            <Input
-              value={form.defaultMeterage?.bottomMeters || ""}
-              onChange={(v) =>
-                set("defaultMeterage", {
-                  ...(form.defaultMeterage || { topMeters: "", bottomMeters: "", dupattaMeters: "" }),
-                  bottomMeters: v,
-                })
-              }
-              placeholder="e.g. 2.5m"
-            />
-          </div>
-          <div>
-            <Label>Dupatta Bit (meters)</Label>
-            <Input
-              value={form.defaultMeterage?.dupattaMeters || ""}
-              onChange={(v) =>
-                set("defaultMeterage", {
-                  ...(form.defaultMeterage || { topMeters: "", bottomMeters: "", dupattaMeters: "" }),
-                  dupattaMeters: v,
-                })
-              }
-              placeholder="e.g. 2.25m"
-            />
-          </div>
-        </div>
-      </Section>
+
 
       {/* Flags */}
       <Section title="Visibility Flags">

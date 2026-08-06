@@ -191,36 +191,73 @@ export default function ProductDetailClient({ product }: Props) {
             </div>
           )}
 
-          {/* Fabric Meterage Summary (read-only, from admin defaults) */}
-          {fabricMeterage && (
-            <div className="bg-white rounded-2xl p-5 border border-brand-border shadow-2xs space-y-3">
-              <div className="flex items-center gap-2">
-                <Layers size={20} className="text-brand-accent" />
-                <div>
+          {/* Size Information — conditional on productType */}
+          {product.productType === "ready-made" ? (
+            /* Ready-Made: show available sizes as chips */
+            product.sizes && product.sizes.length > 0 && (
+              <div className="bg-white rounded-2xl p-5 border border-brand-border shadow-2xs space-y-3">
+                <div className="flex items-center gap-2">
+                  <Layers size={20} className="text-brand-accent" />
                   <h3 className="text-xs font-body font-bold text-brand-text uppercase tracking-wider">
-                    Fabric Meterage (Churidar Bits)
+                    Available Sizes
                   </h3>
-                  <p className="text-[11px] font-body text-brand-text-muted">
-                    Pre-configured cut lengths for this product
-                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {product.sizes.map((size) => (
+                    <span
+                      key={size}
+                      className="px-3.5 py-1.5 text-sm font-body font-semibold border border-brand-border rounded-xl bg-brand-surface text-brand-text"
+                    >
+                      {size}
+                    </span>
+                  ))}
                 </div>
               </div>
-
-              <div className="grid grid-cols-3 gap-3 pt-1">
-                <div className="bg-brand-surface rounded-xl p-3 text-center border border-brand-border/60">
-                  <p className="text-[10px] font-body font-semibold text-brand-text-muted uppercase tracking-wider mb-0.5">Top Bit</p>
-                  <p className="text-sm font-body font-bold text-brand-text">{fabricMeterage.topMeters}</p>
+            )
+          ) : (
+            /* Bit Piece (default / legacy): show sizeDetails or fallback to defaultMeterage */
+            (() => {
+              const shirt = product.sizeDetails?.shirt || fabricMeterage?.topMeters;
+              const bottom = product.sizeDetails?.bottom || fabricMeterage?.bottomMeters;
+              const dupatta = product.sizeDetails?.dupatta || fabricMeterage?.dupattaMeters;
+              const hasAny = shirt || bottom || dupatta;
+              if (!hasAny) return null;
+              return (
+                <div className="bg-white rounded-2xl p-5 border border-brand-border shadow-2xs space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Layers size={20} className="text-brand-accent" />
+                    <div>
+                      <h3 className="text-xs font-body font-bold text-brand-text uppercase tracking-wider">
+                        Size Description
+                      </h3>
+                      <p className="text-[11px] font-body text-brand-text-muted">
+                        Fabric cut lengths for this product
+                      </p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3 pt-1">
+                    {shirt && (
+                      <div className="bg-brand-surface rounded-xl p-3 text-center border border-brand-border/60">
+                        <p className="text-[10px] font-body font-semibold text-brand-text-muted uppercase tracking-wider mb-0.5">Shirt</p>
+                        <p className="text-sm font-body font-bold text-brand-text">{shirt}</p>
+                      </div>
+                    )}
+                    {bottom && (
+                      <div className="bg-brand-surface rounded-xl p-3 text-center border border-brand-border/60">
+                        <p className="text-[10px] font-body font-semibold text-brand-text-muted uppercase tracking-wider mb-0.5">Bottom</p>
+                        <p className="text-sm font-body font-bold text-brand-text">{bottom}</p>
+                      </div>
+                    )}
+                    {dupatta && (
+                      <div className="bg-brand-surface rounded-xl p-3 text-center border border-brand-border/60">
+                        <p className="text-[10px] font-body font-semibold text-brand-text-muted uppercase tracking-wider mb-0.5">Dupatta</p>
+                        <p className="text-sm font-body font-bold text-brand-text">{dupatta}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="bg-brand-surface rounded-xl p-3 text-center border border-brand-border/60">
-                  <p className="text-[10px] font-body font-semibold text-brand-text-muted uppercase tracking-wider mb-0.5">Bottom Bit</p>
-                  <p className="text-sm font-body font-bold text-brand-text">{fabricMeterage.bottomMeters}</p>
-                </div>
-                <div className="bg-brand-surface rounded-xl p-3 text-center border border-brand-border/60">
-                  <p className="text-[10px] font-body font-semibold text-brand-text-muted uppercase tracking-wider mb-0.5">Dupatta Bit</p>
-                  <p className="text-sm font-body font-bold text-brand-text">{fabricMeterage.dupattaMeters}</p>
-                </div>
-              </div>
-            </div>
+              );
+            })()
           )}
 
           {/* Quantity Selector */}

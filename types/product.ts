@@ -11,6 +11,14 @@ export type DefaultMeterage = {
   dupattaMeters: string;
 };
 
+export type ProductType = "bit-piece" | "ready-made";
+
+export type SizeDetails = {
+  shirt?: string;
+  bottom?: string;
+  dupatta?: string;
+};
+
 export type Product = {
   id: string;
   slug: string;
@@ -32,6 +40,8 @@ export type Product = {
   isNew: boolean;
   isBestSeller: boolean;
   isFeatured: boolean;
+  productType?: ProductType;         // "bit-piece" or "ready-made"
+  sizeDetails?: SizeDetails;         // shirt/bottom/dupatta measurements (bit-piece only)
   defaultMeterage?: DefaultMeterage; // admin-configured default fabric cut lengths
   createdAt: string;         // ISO date string
   updatedAt: string;
