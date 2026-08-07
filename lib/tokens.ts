@@ -1,6 +1,5 @@
 // ─── Brand Design Tokens ────────────────────────────────────────────────────
 // Single source of truth for Banat Halima visual identity.
-// Swap values here to rebrand — nothing else needs to change.
 
 export const brand = {
   name: "Banat Halima",
@@ -23,10 +22,5 @@ export const brand = {
   fonts: {
     heading: "var(--font-cormorant)",   // Cormorant Garamond — luxury serif
     body: "var(--font-inter)",          // Inter — clean sans-serif
-  },
-
-  admin: {
-    email: "admin@banathaleema.com",
-    defaultPassword: "admin123",        // shown on login page — change in .env
   },
 } as const;

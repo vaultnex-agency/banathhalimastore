@@ -12,7 +12,7 @@ const FOOTER_LINKS = {
   About: [
     { label: "Our Story", href: "#" },
     { label: "Craftsmanship", href: "#" },
-    { label: "Admin Portal", href: "/admin" },
+    { label: "My Account", href: "/account" },
   ],
   Policies: [
     { label: "Privacy Policy", href: "#" },

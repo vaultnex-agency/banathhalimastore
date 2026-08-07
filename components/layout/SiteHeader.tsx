@@ -73,11 +73,11 @@ export default function SiteHeader() {
               )}
             </Link>
 
-            {/* Account / Admin */}
+            {/* Account */}
             <Link
-              href="/admin"
-              aria-label="Admin Portal"
-              title="Admin Portal"
+              href="/account"
+              aria-label="Customer Account"
+              title="Customer Account"
               className="relative p-2.5 rounded-full hover:bg-brand-muted transition-colors"
             >
               <User size={20} strokeWidth={1.5} />

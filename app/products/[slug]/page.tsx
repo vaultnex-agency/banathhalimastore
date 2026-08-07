@@ -1,4 +1,4 @@
-import { getProductBySlug } from "@/lib/db";
+import { getProductBySlug } from "@/lib/data/products";
 import { notFound } from "next/navigation";
 import AnnouncementBar from "@/components/layout/AnnouncementBar";
 import SiteHeader from "@/components/layout/SiteHeader";
