@@ -38,14 +38,13 @@ export default async function CollectionPage({ params }: Props) {
       <AnnouncementBar />
       <SiteHeader />
 
-      {/* Push content below fixed header (56px) + announcement bar */}
-      <div className="pt-14">
+      <main>
         <CollectionClient
           products={products}
           collectionName={meta.name}
           description={meta.description}
         />
-      </div>
+      </main>
 
       <Newsletter />
       <SiteFooter />
