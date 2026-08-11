@@ -67,6 +67,49 @@ export default function ProductDetailClient({ product }: Props) {
     meterageToPass
   );
 
+  const handleDirectWhatsAppBooking = () => {
+    try {
+      const orderPayload = {
+        customer: {
+          fullName: "Direct Booking Customer",
+          phone: "",
+          addressLine1: "",
+          city: "Dubai",
+          emirate: "Dubai",
+          country: "UAE",
+        },
+        items: [
+          {
+            productId: product.id,
+            productName: product.name,
+            productImage: product.images[0] || "/product-teal.png",
+            colour: selectedColour || "",
+            size: sizeToPass || "Custom",
+            quantity,
+            price: product.price,
+            currency: product.currency,
+          },
+        ],
+        subtotal: product.price * quantity,
+        shippingCost: 0,
+        discount: 0,
+        total: product.price * quantity,
+        currency: product.currency,
+        status: "pending",
+        paymentMethod: "cod",
+        notes: undefined,
+      };
+
+      fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orderPayload),
+      }).catch((err) => console.error("Order persistence failed:", err));
+    } catch (err) {
+      console.error("Direct booking error:", err);
+    }
+  };
+
   return (
     <div className="pt-20 pb-16 px-4 max-w-7xl mx-auto">
       {/* Breadcrumb */}
@@ -340,6 +383,7 @@ export default function ProductDetailClient({ product }: Props) {
               href={whatsAppUrl}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={handleDirectWhatsAppBooking}
               className="w-full py-4 px-6 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-body font-bold rounded-2xl transition-all shadow-sm flex items-center justify-center gap-2 group"
             >
               <MessageCircle size={20} className="fill-white/20" />

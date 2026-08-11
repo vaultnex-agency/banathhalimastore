@@ -1,8 +1,36 @@
 import type { Order } from "@/types/order";
 import { getSupabaseClient, TABLES, mapOrderToSupabaseRow, mapSupabaseRowToOrder } from "@/lib/supabase";
+import { promises as fs } from "fs";
+import path from "path";
 
 // ─── Data Access Layer for Orders (Storefront) ────────────────────────────────
-// Persists orders directly to Supabase when configured.
+// Persists orders directly to Supabase when configured, or local flat-file DB fallback.
+
+async function saveOrderToFlatFile(order: Order): Promise<void> {
+  const dbPaths = [
+    path.join(process.cwd(), "..", "banath-admin", "data", "db.json"),
+    path.join(process.cwd(), "data", "db.json"),
+  ];
+
+  for (const dbPath of dbPaths) {
+    try {
+      let db: { products: any[]; orders: any[] } = { products: [], orders: [] };
+      try {
+        const raw = await fs.readFile(dbPath, "utf-8");
+        db = JSON.parse(raw);
+      } catch {
+        // Create directory and file if missing
+      }
+      if (!Array.isArray(db.orders)) db.orders = [];
+      db.orders.unshift(order);
+      await fs.mkdir(path.dirname(dbPath), { recursive: true });
+      await fs.writeFile(dbPath, JSON.stringify(db, null, 2), "utf-8");
+      return;
+    } catch (err) {
+      console.warn("Flat-file DB write warning:", err);
+    }
+  }
+}
 
 export async function createOrder(
   orderData: Omit<Order, "id" | "orderNumber" | "createdAt" | "updatedAt">
@@ -40,6 +68,9 @@ export async function createOrder(
     }
   }
 
-  // Return generated order object if offline/unconfigured
+  // Fallback to local flat-file JSON DB
+  await saveOrderToFlatFile(order);
+
   return order;
 }
+

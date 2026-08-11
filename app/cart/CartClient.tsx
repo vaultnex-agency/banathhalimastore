@@ -35,6 +35,47 @@ export default function CartClient() {
     bookingForm
   );
 
+  const handleCartBooking = () => {
+    try {
+      const orderPayload = {
+        customer: {
+          fullName: bookingForm.customerName || "Store Customer",
+          phone: bookingForm.phone || "",
+          addressLine1: bookingForm.address || "",
+          city: "Dubai",
+          emirate: "Dubai",
+          country: "UAE",
+        },
+        items: items.map((item) => ({
+          productId: item.productId,
+          productName: item.name,
+          productImage: item.image,
+          colour: item.selectedColour || "",
+          size: item.selectedSize || "Default",
+          quantity: item.quantity,
+          price: item.price,
+          currency: item.currency,
+        })),
+        subtotal,
+        shippingCost: 0,
+        discount: 0,
+        total: subtotal,
+        currency,
+        status: "pending",
+        paymentMethod: "cod",
+        notes: bookingForm.notes || undefined,
+      };
+
+      fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orderPayload),
+      }).catch((err) => console.error("Order persistence failed:", err));
+    } catch (err) {
+      console.error("Cart booking error:", err);
+    }
+  };
+
   if (items.length === 0) {
     return (
       <div className="pt-24 pb-20 px-4 max-w-7xl mx-auto text-center">
@@ -308,6 +349,7 @@ export default function CartClient() {
               href={whatsAppCheckoutUrl}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={handleCartBooking}
               className="w-full py-4 px-6 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-body font-bold rounded-2xl transition-all shadow-md flex items-center justify-center gap-2.5 group"
             >
               <MessageCircle size={22} className="fill-white/20" />
