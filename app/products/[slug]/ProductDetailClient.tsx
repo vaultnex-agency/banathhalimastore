@@ -31,6 +31,9 @@ export default function ProductDetailClient({ product }: Props) {
   const [selectedColour, setSelectedColour] = useState<string>(
     product.colours[0]?.name || ""
   );
+  const [selectedSize, setSelectedSize] = useState<string>(
+    product.sizes && product.sizes.length > 0 ? product.sizes[0] : ""
+  );
   const [quantity, setQuantity] = useState(1);
   const [wishlisted, setWishlisted] = useState(false);
   const [added, setAdded] = useState(false);
@@ -41,13 +44,16 @@ export default function ProductDetailClient({ product }: Props) {
     ? `Top: ${fabricMeterage.topMeters} | Bottom: ${fabricMeterage.bottomMeters} | Dupatta: ${fabricMeterage.dupattaMeters}`
     : undefined;
 
+  const sizeToPass = product.productType === "ready-made" ? selectedSize : summaryMeterageLabel;
+  const meterageToPass = product.productType === "ready-made" ? undefined : fabricMeterage;
+
   const handleAddToCart = () => {
     addToCart(
       product,
-      summaryMeterageLabel,
+      sizeToPass,
       selectedColour,
       quantity,
-      fabricMeterage
+      meterageToPass
     );
     setAdded(true);
     setTimeout(() => setAdded(false), 2000);
@@ -55,10 +61,10 @@ export default function ProductDetailClient({ product }: Props) {
 
   const whatsAppUrl = createDirectProductWhatsAppUrl(
     product,
-    summaryMeterageLabel,
+    sizeToPass,
     selectedColour,
     quantity,
-    fabricMeterage
+    meterageToPass
   );
 
   return (
@@ -193,27 +199,30 @@ export default function ProductDetailClient({ product }: Props) {
 
           {/* Size Information — conditional on productType */}
           {product.productType === "ready-made" ? (
-            /* Ready-Made: show available sizes as chips */
-            product.sizes && product.sizes.length > 0 && (
-              <div className="bg-white rounded-2xl p-5 border border-brand-border shadow-2xs space-y-3">
-                <div className="flex items-center gap-2">
-                  <Layers size={20} className="text-brand-accent" />
-                  <h3 className="text-xs font-body font-bold text-brand-text uppercase tracking-wider">
-                    Available Sizes
-                  </h3>
-                </div>
-                <div className="flex flex-wrap gap-2 pt-1">
+            /* Ready-Made: show available sizes as interactive selectors */
+            product.sizes && product.sizes.length > 0 ? (
+              <div>
+                <label className="block text-xs font-body font-semibold text-brand-text uppercase tracking-wider mb-2">
+                  Select Size: <span className="font-normal text-brand-text-muted">{selectedSize || "Select a size"}</span>
+                </label>
+                <div className="flex flex-wrap gap-2.5">
                   {product.sizes.map((size) => (
-                    <span
+                    <button
                       key={size}
-                      className="px-3.5 py-1.5 text-sm font-body font-semibold border border-brand-border rounded-xl bg-brand-surface text-brand-text"
+                      type="button"
+                      onClick={() => setSelectedSize(size)}
+                      className={`min-w-[44px] h-10 px-3.5 rounded-xl text-sm font-body font-semibold border transition-all cursor-pointer ${
+                        selectedSize === size
+                          ? "bg-black text-white border-black shadow-2xs ring-2 ring-black/10"
+                          : "bg-white text-brand-text border-brand-border hover:border-brand-primary/60"
+                      }`}
                     >
                       {size}
-                    </span>
+                    </button>
                   ))}
                 </div>
               </div>
-            )
+            ) : null
           ) : (
             /* Bit Piece (default / legacy): show sizeDetails or fallback to defaultMeterage */
             (() => {
