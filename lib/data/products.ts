@@ -1,9 +1,9 @@
-import { mockProducts } from "@/data/mock";
 import type { Product } from "@/types/product";
 import { getSupabaseClient, TABLES, mapSupabaseRowToProduct } from "@/lib/supabase";
 
 // ─── Data Access Layer for Products (Storefront) ─────────────────────────────
-// Connects to Supabase when configured, otherwise falls back gracefully to mockProducts.
+// Connects to Supabase when configured; returns an empty list when no products exist.
+// Always fetches live — no caching — so new products appear immediately.
 
 export async function getProducts(): Promise<Product[]> {
   const supabase = getSupabaseClient();
@@ -16,7 +16,7 @@ export async function getProducts(): Promise<Product[]> {
 
       if (error) {
         console.error("Supabase getProducts error:", error);
-      } else if (data && data.length > 0) {
+      } else if (data) {
         return data.map(mapSupabaseRowToProduct);
       }
     } catch (err) {
@@ -24,9 +24,9 @@ export async function getProducts(): Promise<Product[]> {
     }
   }
 
-  // Fallback to local mock data
-  return mockProducts;
+  return [];
 }
+
 
 export async function getProductById(id: string): Promise<Product | null> {
   const supabase = getSupabaseClient();

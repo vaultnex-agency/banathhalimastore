@@ -6,6 +6,8 @@ import SiteFooter from "@/components/layout/SiteFooter";
 import Newsletter from "@/components/shared/Newsletter";
 import CollectionClient from "./CollectionClient";
 
+export const dynamic = "force-dynamic";
+
 type Props = { params: Promise<{ slug: string }> };
 
 const COLLECTION_META: Record<string, { name: string; description: string }> = {
