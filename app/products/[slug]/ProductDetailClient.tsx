@@ -7,7 +7,7 @@ import { Star, ShieldCheck, Truck, RefreshCw, Heart, ShoppingBag, ArrowLeft, Mes
 import type { Product } from "@/types/product";
 import type { FabricMeterage } from "@/types/cart";
 import { brand } from "@/lib/tokens";
-import { formatPrice, discountPercent } from "@/lib/utils";
+import { formatPrice, discountPercent, getProductImageUrl } from "@/lib/utils";
 import { useCart } from "@/context/CartContext";
 import { createDirectProductWhatsAppUrl, DISPLAY_WHATSAPP_NUMBER } from "@/lib/whatsapp";
 
@@ -128,7 +128,7 @@ export default function ProductDetailClient({ product }: Props) {
         <div className="space-y-4">
           <div className="relative aspect-[3/4] rounded-3xl overflow-hidden bg-brand-muted shadow-sm border border-brand-border/40">
             <Image
-              src={product.images[selectedImageIndex] || product.images[0] || "/product-teal.png"}
+              src={getProductImageUrl(product.images[selectedImageIndex] || product.images[0])}
               alt={product.name}
               fill
               priority
@@ -155,7 +155,7 @@ export default function ProductDetailClient({ product }: Props) {
                       : "border-transparent opacity-75 hover:opacity-100"
                   }`}
                 >
-                  <Image src={img} alt="" fill className="object-cover object-top" />
+                  <Image src={getProductImageUrl(img)} alt="" fill className="object-cover object-top" />
                 </button>
               ))}
             </div>

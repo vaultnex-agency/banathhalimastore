@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import type { CartItem, CustomMeasurements } from "@/types/cart";
 import type { Product } from "@/types/product";
+import { getProductImageUrl } from "@/lib/utils";
 
 export type ToastNotice = {
   productName: string;
@@ -97,7 +98,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         price: product.price,
         originalPrice: product.originalPrice,
         currency: product.currency,
-        image: product.images[0] || "/product-teal.png",
+        image: getProductImageUrl(product.images[0]),
         selectedSize: size,
         selectedColour: colour,
         customMeasurements,

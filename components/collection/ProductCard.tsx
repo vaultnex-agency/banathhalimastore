@@ -6,7 +6,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { Heart, Star, ShoppingBag, Eye, Check } from "lucide-react";
 import type { Product } from "@/types/product";
-import { formatPrice, discountPercent } from "@/lib/utils";
+import { formatPrice, discountPercent, getProductImageUrl } from "@/lib/utils";
 import { useCart } from "@/context/CartContext";
 
 type Props = {
@@ -46,7 +46,7 @@ export default function ProductCard({ product, index = 0 }: Props) {
           {/* Product Image */}
           <div className="absolute inset-0">
             <Image
-              src={product.images[0] ?? "/product-teal.png"}
+              src={getProductImageUrl(product.images[0])}
               alt={product.name}
               fill
               priority={index < 4}
