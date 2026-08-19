@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Star, ShieldCheck, Truck, RefreshCw, Heart, ShoppingBag, ArrowLeft, MessageCircle, Plus, Minus, Check, Ruler, Layers } from "lucide-react";
+import { Star, ShieldCheck, Truck, RefreshCw, Heart, ShoppingBag, ArrowLeft, MessageCircle, Plus, Minus, Check, Ruler, Layers, X, Copy, CheckCircle } from "lucide-react";
 import type { Product } from "@/types/product";
 import type { FabricMeterage } from "@/types/cart";
 import { brand } from "@/lib/tokens";
@@ -59,21 +59,47 @@ export default function ProductDetailClient({ product }: Props) {
     setTimeout(() => setAdded(false), 2000);
   };
 
-  const whatsAppUrl = createDirectProductWhatsAppUrl(
-    product,
-    sizeToPass,
-    selectedColour,
-    quantity,
-    meterageToPass
-  );
+  // Booking Modal State
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  const [customerDetails, setCustomerDetails] = useState({
+    fullName: "",
+    phone: "",
+    address: "",
+    notes: "",
+  });
+  const [bookingErrors, setBookingErrors] = useState<{ fullName?: string; phone?: string; address?: string }>({});
+  const [isSubmittingBooking, setIsSubmittingBooking] = useState(false);
+  const [bookingSuccessOrderNumber, setBookingSuccessOrderNumber] = useState<string | null>(null);
 
-  const handleDirectWhatsAppBooking = () => {
+  const handleBookingInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setCustomerDetails((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleDirectWhatsAppBookingSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const errors: { fullName?: string; phone?: string; address?: string } = {};
+    if (!customerDetails.fullName.trim()) errors.fullName = "Full name is required";
+    if (!customerDetails.phone.trim()) errors.phone = "Phone / WhatsApp number is required";
+    if (!customerDetails.address.trim()) errors.address = "Delivery address is required";
+
+    if (Object.keys(errors).length > 0) {
+      setBookingErrors(errors);
+      return;
+    }
+
+    setBookingErrors({});
+    setIsSubmittingBooking(true);
+
+    let resolvedOrderNumber: string | null = null;
+
     try {
       const orderPayload = {
         customer: {
-          fullName: "Direct Booking Customer",
-          phone: "",
-          addressLine1: "",
+          fullName: customerDetails.fullName.trim(),
+          phone: customerDetails.phone.trim(),
+          addressLine1: customerDetails.address.trim(),
           city: "Dubai",
           emirate: "Dubai",
           country: "UAE",
@@ -82,7 +108,7 @@ export default function ProductDetailClient({ product }: Props) {
           {
             productId: product.id,
             productName: product.name,
-            productImage: product.images[0] || "/product-teal.png",
+            productImage: getProductImageUrl(product.images[0]),
             colour: selectedColour || "",
             size: sizeToPass || "Custom",
             quantity,
@@ -97,17 +123,42 @@ export default function ProductDetailClient({ product }: Props) {
         currency: product.currency,
         status: "pending",
         paymentMethod: "cod",
-        notes: undefined,
+        notes: customerDetails.notes.trim() || undefined,
       };
 
-      fetch("/api/orders", {
+      const res = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(orderPayload),
-      }).catch((err) => console.error("Order persistence failed:", err));
+      });
+
+      if (res.ok) {
+        const created = await res.json();
+        resolvedOrderNumber = created.orderNumber ?? null;
+      }
     } catch (err) {
       console.error("Direct booking error:", err);
     }
+
+    const whatsAppUrl = createDirectProductWhatsAppUrl(
+      product,
+      sizeToPass,
+      selectedColour,
+      quantity,
+      meterageToPass,
+      {
+        customerName: customerDetails.fullName.trim(),
+        phone: customerDetails.phone.trim(),
+        address: customerDetails.address.trim(),
+        notes: customerDetails.notes.trim() || undefined,
+      },
+      resolvedOrderNumber ?? undefined
+    );
+
+    window.open(whatsAppUrl, "_blank", "noopener,noreferrer");
+
+    setBookingSuccessOrderNumber(resolvedOrderNumber);
+    setIsSubmittingBooking(false);
   };
 
   return (
@@ -379,16 +430,14 @@ export default function ProductDetailClient({ product }: Props) {
             </div>
 
             {/* Direct WhatsApp Booking Button */}
-            <a
-              href={whatsAppUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={handleDirectWhatsAppBooking}
-              className="w-full py-4 px-6 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-body font-bold rounded-2xl transition-all shadow-sm flex items-center justify-center gap-2 group"
+            <button
+              type="button"
+              onClick={() => setIsBookingModalOpen(true)}
+              className="w-full py-4 px-6 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-body font-bold rounded-2xl transition-all shadow-sm flex items-center justify-center gap-2 group cursor-pointer"
             >
               <MessageCircle size={20} className="fill-white/20" />
               <span>Book / Order via WhatsApp ({DISPLAY_WHATSAPP_NUMBER})</span>
-            </a>
+            </button>
           </div>
 
           {/* Trust Badges */}
@@ -411,6 +460,186 @@ export default function ProductDetailClient({ product }: Props) {
           </div>
         </div>
       </div>
+
+      {/* ── Customer Details Booking Modal ─────────────────────────────────────── */}
+      {isBookingModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 md:p-8 shadow-2xl relative max-h-[90vh] overflow-y-auto border border-brand-border">
+            <button
+              onClick={() => {
+                setIsBookingModalOpen(false);
+                setBookingSuccessOrderNumber(null);
+              }}
+              className="absolute top-5 right-5 text-brand-text-muted hover:text-brand-text p-1.5 rounded-full hover:bg-brand-surface transition-colors"
+            >
+              <X size={20} />
+            </button>
+
+            {bookingSuccessOrderNumber ? (
+              <div className="text-center py-4 space-y-5">
+                <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-600">
+                  <CheckCircle size={36} />
+                </div>
+                <div>
+                  <h3 className="font-heading text-2xl font-bold text-brand-text mb-1">Order Sent to WhatsApp!</h3>
+                  <p className="text-xs font-body text-brand-text-muted">
+                    Your details and order number were forwarded to our WhatsApp care team.
+                  </p>
+                </div>
+
+                <div className="bg-brand-surface border border-brand-primary/30 rounded-2xl p-4">
+                  <p className="text-[11px] font-body uppercase font-semibold text-brand-text-muted mb-1">Your Order Reference</p>
+                  <p className="font-heading text-2xl font-bold text-brand-primary">{bookingSuccessOrderNumber}</p>
+                </div>
+
+                <div className="flex flex-col gap-2 pt-2">
+                  <Link
+                    href={`/track-order?orderNumber=${bookingSuccessOrderNumber}`}
+                    className="w-full py-3 bg-brand-primary text-white text-xs font-body font-bold rounded-xl text-center hover:bg-brand-accent transition-colors"
+                  >
+                    Track Order Progress
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setIsBookingModalOpen(false);
+                      setBookingSuccessOrderNumber(null);
+                    }}
+                    className="w-full py-3 bg-brand-surface text-brand-text text-xs font-body font-semibold rounded-xl border border-brand-border hover:bg-brand-muted transition-colors"
+                  >
+                    Back to Product
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <form onSubmit={handleDirectWhatsAppBookingSubmit} className="space-y-5">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <MessageCircle className="text-emerald-600" size={22} />
+                    <h3 className="font-heading text-2xl font-semibold text-brand-text">
+                      Booking Details
+                    </h3>
+                  </div>
+                  <p className="text-xs font-body text-brand-text-muted">
+                    Please provide your delivery info to generate your WhatsApp booking.
+                  </p>
+                </div>
+
+                {/* Product Summary Mini Card */}
+                <div className="flex gap-3 p-3 bg-brand-surface rounded-2xl border border-brand-border/60">
+                  <div className="relative w-14 h-16 rounded-xl overflow-hidden bg-brand-muted flex-shrink-0">
+                    <Image
+                      src={getProductImageUrl(product.images[0])}
+                      alt={product.name}
+                      fill
+                      className="object-cover object-top"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-body text-xs font-semibold text-brand-text line-clamp-1">{product.name}</p>
+                    <p className="text-[11px] font-body text-brand-text-muted mt-0.5">
+                      Qty: {quantity} {selectedColour ? `| Color: ${selectedColour}` : ""}
+                    </p>
+                    <p className="font-body text-xs font-bold text-brand-primary mt-1">
+                      Total: {formatPrice(product.price * quantity, product.currency)}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-3.5">
+                  <div>
+                    <label className="block text-xs font-body font-semibold text-brand-text uppercase tracking-wider mb-1">
+                      Full Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="fullName"
+                      value={customerDetails.fullName}
+                      onChange={handleBookingInputChange}
+                      placeholder="e.g. Halima Ahmed"
+                      className={`w-full px-4 py-2.5 rounded-xl border text-xs font-body focus:outline-none transition-all ${
+                        bookingErrors.fullName ? "border-red-500" : "border-brand-border focus:border-brand-primary"
+                      }`}
+                    />
+                    {bookingErrors.fullName && (
+                      <p className="text-[11px] font-body text-red-500 mt-1">{bookingErrors.fullName}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-body font-semibold text-brand-text uppercase tracking-wider mb-1">
+                      Phone / WhatsApp Number <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={customerDetails.phone}
+                      onChange={handleBookingInputChange}
+                      placeholder="e.g. +971 50 123 4567"
+                      className={`w-full px-4 py-2.5 rounded-xl border text-xs font-body focus:outline-none transition-all ${
+                        bookingErrors.phone ? "border-red-500" : "border-brand-border focus:border-brand-primary"
+                      }`}
+                    />
+                    {bookingErrors.phone && (
+                      <p className="text-[11px] font-body text-red-500 mt-1">{bookingErrors.phone}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-body font-semibold text-brand-text uppercase tracking-wider mb-1">
+                      Delivery Address / City <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      name="address"
+                      value={customerDetails.address}
+                      onChange={handleBookingInputChange}
+                      placeholder="e.g. Villa 12, Jumeirah 1, Dubai"
+                      className={`w-full px-4 py-2.5 rounded-xl border text-xs font-body focus:outline-none transition-all ${
+                        bookingErrors.address ? "border-red-500" : "border-brand-border focus:border-brand-primary"
+                      }`}
+                    />
+                    {bookingErrors.address && (
+                      <p className="text-[11px] font-body text-red-500 mt-1">{bookingErrors.address}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-body font-semibold text-brand-text uppercase tracking-wider mb-1">
+                      Notes / Instructions (Optional)
+                    </label>
+                    <textarea
+                      name="notes"
+                      rows={2}
+                      value={customerDetails.notes}
+                      onChange={handleBookingInputChange}
+                      placeholder="Fitting preferences, preferred delivery time..."
+                      className="w-full px-4 py-2.5 rounded-xl border border-brand-border text-xs font-body focus:outline-none focus:border-brand-primary transition-all resize-none"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isSubmittingBooking}
+                  className="w-full py-3.5 px-6 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-body font-bold rounded-xl transition-all shadow-sm flex items-center justify-center gap-2"
+                >
+                  {isSubmittingBooking ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                      Creating Order...
+                    </>
+                  ) : (
+                    <>
+                      <MessageCircle size={18} />
+                      Confirm & Book via WhatsApp
+                    </>
+                  )}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

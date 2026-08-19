@@ -39,8 +39,23 @@ export default function CartClient() {
     bookingForm
   );
 
+  const [formErrors, setFormErrors] = useState<{ customerName?: string; phone?: string; address?: string }>({});
+
   const handleCartBooking = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
+
+    // Validate required fields
+    const errors: { customerName?: string; phone?: string; address?: string } = {};
+    if (!bookingForm.customerName.trim()) errors.customerName = "Full name is required";
+    if (!bookingForm.phone.trim()) errors.phone = "Phone / WhatsApp number is required";
+    if (!bookingForm.address.trim()) errors.address = "Delivery address is required";
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+
+    setFormErrors({});
     setBooking(true);
 
     let resolvedOrderNumber: string | null = null;
@@ -48,9 +63,9 @@ export default function CartClient() {
     try {
       const orderPayload = {
         customer: {
-          fullName: bookingForm.customerName || "Store Customer",
-          phone: bookingForm.phone || "",
-          addressLine1: bookingForm.address || "",
+          fullName: bookingForm.customerName.trim(),
+          phone: bookingForm.phone.trim(),
+          addressLine1: bookingForm.address.trim(),
           city: "Dubai",
           emirate: "Dubai",
           country: "UAE",
@@ -90,7 +105,7 @@ export default function CartClient() {
       console.error("Order creation error:", err);
     }
 
-    // Build WhatsApp URL — with order number stamped at the top
+    // Build WhatsApp URL — with order number & customer details
     const url = createCartCheckoutWhatsAppUrl(
       items,
       subtotal,
@@ -402,7 +417,7 @@ export default function CartClient() {
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-body font-semibold text-brand-text uppercase tracking-wider mb-1.5">
-                  Full Name
+                  Full Name <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -410,13 +425,18 @@ export default function CartClient() {
                   value={bookingForm.customerName}
                   onChange={handleInputChange}
                   placeholder="e.g. Halima Ahmed"
-                  className="w-full px-4 py-3 rounded-xl border border-brand-border text-xs font-body focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-all bg-brand-surface"
+                  className={`w-full px-4 py-3 rounded-xl border text-xs font-body focus:outline-none focus:ring-1 transition-all bg-brand-surface ${
+                    formErrors.customerName ? "border-red-500 focus:border-red-500 focus:ring-red-500" : "border-brand-border focus:border-brand-primary focus:ring-brand-primary"
+                  }`}
                 />
+                {formErrors.customerName && (
+                  <p className="text-[11px] font-body text-red-500 mt-1">{formErrors.customerName}</p>
+                )}
               </div>
 
               <div>
                 <label className="block text-xs font-body font-semibold text-brand-text uppercase tracking-wider mb-1.5">
-                  Phone / WhatsApp Number
+                  Phone / WhatsApp Number <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="tel"
@@ -424,13 +444,18 @@ export default function CartClient() {
                   value={bookingForm.phone}
                   onChange={handleInputChange}
                   placeholder="e.g. +971 50 123 4567"
-                  className="w-full px-4 py-3 rounded-xl border border-brand-border text-xs font-body focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-all bg-brand-surface"
+                  className={`w-full px-4 py-3 rounded-xl border text-xs font-body focus:outline-none focus:ring-1 transition-all bg-brand-surface ${
+                    formErrors.phone ? "border-red-500 focus:border-red-500 focus:ring-red-500" : "border-brand-border focus:border-brand-primary focus:ring-brand-primary"
+                  }`}
                 />
+                {formErrors.phone && (
+                  <p className="text-[11px] font-body text-red-500 mt-1">{formErrors.phone}</p>
+                )}
               </div>
 
               <div>
                 <label className="block text-xs font-body font-semibold text-brand-text uppercase tracking-wider mb-1.5">
-                  Delivery Address / City
+                  Delivery Address / City <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -438,8 +463,13 @@ export default function CartClient() {
                   value={bookingForm.address}
                   onChange={handleInputChange}
                   placeholder="e.g. Villa 12, Jumeirah 1, Dubai"
-                  className="w-full px-4 py-3 rounded-xl border border-brand-border text-xs font-body focus:outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary transition-all bg-brand-surface"
+                  className={`w-full px-4 py-3 rounded-xl border text-xs font-body focus:outline-none focus:ring-1 transition-all bg-brand-surface ${
+                    formErrors.address ? "border-red-500 focus:border-red-500 focus:ring-red-500" : "border-brand-border focus:border-brand-primary focus:ring-brand-primary"
+                  }`}
                 />
+                {formErrors.address && (
+                  <p className="text-[11px] font-body text-red-500 mt-1">{formErrors.address}</p>
+                )}
               </div>
 
               <div>

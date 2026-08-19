@@ -6,45 +6,64 @@ export const WHATSAPP_PHONE_NUMBER = "918113824528";
 export const DISPLAY_WHATSAPP_NUMBER = "+91 8113824528";
 
 /**
- * Creates a WhatsApp URL for single product direct booking (Churidar Bits)
+ * Creates a WhatsApp URL for single product direct booking (Churidar Suits / Bits)
  */
 export function createDirectProductWhatsAppUrl(
   product: Product,
   selectedSize?: string,
   selectedColour?: string,
   quantity: number = 1,
-  fabricMeterage?: FabricMeterage
+  fabricMeterage?: FabricMeterage,
+  bookingDetails?: BookingDetails,
+  orderNumber?: string
 ): string {
   const total = product.price * quantity;
   const messageLines: (string | null)[] = [
-    `🌸 *CHURIDAR BITS BOOKING INQUIRY - BANAT HALIMA*`,
+    `🌸 *ORDER BOOKING - BANAT HALIMA*`,
     ``,
-    `*Product:* ${product.name}`,
-    `*Price:* ${formatPrice(product.price, product.currency)}`,
-    selectedColour ? `*Colour:* ${selectedColour}` : null,
   ];
+
+  if (orderNumber) {
+    messageLines.push(`📋 *Order Reference Number:* \`${orderNumber}\``);
+    messageLines.push(`🔗 *Track Order:* ${typeof window !== "undefined" ? window.location.origin : ""}/track-order`);
+    messageLines.push(``);
+  }
+
+  if (bookingDetails?.customerName) {
+    messageLines.push(`👤 *CUSTOMER DETAILS:*`);
+    messageLines.push(`  • *Name:* ${bookingDetails.customerName}`);
+    if (bookingDetails.phone)   messageLines.push(`  • *Phone:* ${bookingDetails.phone}`);
+    if (bookingDetails.address) messageLines.push(`  • *Address:* ${bookingDetails.address}`);
+    if (bookingDetails.notes)   messageLines.push(`  • *Notes:* ${bookingDetails.notes}`);
+    messageLines.push(``);
+  }
+
+  messageLines.push(`👗 *PRODUCT DETAILS:*`);
+  messageLines.push(`  • *Product Name:* ${product.name}`);
+  messageLines.push(`  • *Product ID:* \`${product.id}\``);
+  messageLines.push(`  • *Price:* ${formatPrice(product.price, product.currency)}`);
+  if (selectedColour) messageLines.push(`  • *Colour:* ${selectedColour}`);
 
   if (
     fabricMeterage &&
     (fabricMeterage.topMeters || fabricMeterage.bottomMeters || fabricMeterage.dupattaMeters)
   ) {
-    messageLines.push(``);
-    messageLines.push(`*FABRIC METERAGE (CHURIDAR BITS):*`);
+    messageLines.push(`  • *Fabric Cut Lengths:*`);
     if (fabricMeterage.topMeters)
-      messageLines.push(`  • *Top Bit:* ${fabricMeterage.topMeters}`);
+      messageLines.push(`      - Top Bit: ${fabricMeterage.topMeters}`);
     if (fabricMeterage.bottomMeters)
-      messageLines.push(`  • *Bottom Bit:* ${fabricMeterage.bottomMeters}`);
+      messageLines.push(`      - Bottom Bit: ${fabricMeterage.bottomMeters}`);
     if (fabricMeterage.dupattaMeters)
-      messageLines.push(`  • *Dupatta Bit:* ${fabricMeterage.dupattaMeters}`);
+      messageLines.push(`      - Dupatta Bit: ${fabricMeterage.dupattaMeters}`);
   } else if (selectedSize) {
-    messageLines.push(`*Size Cut:* ${selectedSize}`);
+    messageLines.push(`  • *Size Cut:* ${selectedSize}`);
   }
 
   messageLines.push(``);
-  messageLines.push(`*Quantity:* ${quantity}`);
-  messageLines.push(`*Total Amount:* ${formatPrice(total, product.currency)}`);
+  messageLines.push(`📦 *Quantity:* ${quantity}`);
+  messageLines.push(`💰 *TOTAL AMOUNT:* ${formatPrice(total, product.currency)}`);
   messageLines.push(``);
-  messageLines.push(`Hi, I would like to order these Churidar Bits with the specified meterage. Please confirm stock!`);
+  messageLines.push(`Please confirm availability and delivery schedule for my order. Thank you!`);
 
   const filtered = messageLines.filter((line) => line !== null) as string[];
   const encodedText = encodeURIComponent(filtered.join("\n"));
@@ -53,8 +72,6 @@ export function createDirectProductWhatsAppUrl(
 
 /**
  * Creates a WhatsApp URL for full cart checkout with customer booking details.
- * Pass orderNumber (received from the API after order creation) to include it
- * at the top of the message — so the customer always has it in their chat.
  */
 export function createCartCheckoutWhatsAppUrl(
   items: CartItem[],
@@ -68,37 +85,37 @@ export function createCartCheckoutWhatsAppUrl(
     ``,
   ];
 
-  // ── Order reference (shown first so customer sees it immediately) ──
+  // ── Order reference ──
   if (orderNumber) {
-    messageLines.push(`📋 *Order Reference:* \`${orderNumber}\``);
-    messageLines.push(`🔗 Track your order: ${typeof window !== "undefined" ? window.location.origin : ""}/track-order`);
+    messageLines.push(`📋 *Order Reference Number:* \`${orderNumber}\``);
+    messageLines.push(`🔗 *Track Order:* ${typeof window !== "undefined" ? window.location.origin : ""}/track-order`);
     messageLines.push(``);
   }
 
   if (bookingDetails?.customerName) {
-    messageLines.push(`*CUSTOMER DETAILS:*`);
-    messageLines.push(`• *Name:* ${bookingDetails.customerName}`);
-    if (bookingDetails.phone) messageLines.push(`• *Phone:* ${bookingDetails.phone}`);
-    if (bookingDetails.address) messageLines.push(`• *Address:* ${bookingDetails.address}`);
-    if (bookingDetails.notes) messageLines.push(`• *Notes:* ${bookingDetails.notes}`);
+    messageLines.push(`👤 *CUSTOMER DETAILS:*`);
+    messageLines.push(`  • *Name:* ${bookingDetails.customerName}`);
+    if (bookingDetails.phone)   messageLines.push(`  • *Phone:* ${bookingDetails.phone}`);
+    if (bookingDetails.address) messageLines.push(`  • *Address:* ${bookingDetails.address}`);
+    if (bookingDetails.notes)   messageLines.push(`  • *Notes:* ${bookingDetails.notes}`);
     messageLines.push(``);
   }
 
-  messageLines.push(`*ORDER ITEMS (${items.length}):*`);
+  messageLines.push(`📦 *ORDER ITEMS (${items.length}):*`);
 
   items.forEach((item, index) => {
     const itemTotal = item.price * item.quantity;
-    let desc = `${index + 1}. *${item.name}*`;
+    let desc = `${index + 1}. *${item.name}* (ID: \`${item.productId}\`)`;
     const specs: string[] = [];
     if (item.selectedColour) specs.push(`Color: ${item.selectedColour}`);
-    if (item.selectedSize) specs.push(`Pack: ${item.selectedSize}`);
-    if (specs.length > 0) desc += ` (${specs.join(" | ")})`;
+    if (item.selectedSize) specs.push(`Size/Cut: ${item.selectedSize}`);
+    if (specs.length > 0) desc += `\n   ${specs.join(" | ")}`;
 
     if (
       item.customMeasurements &&
       (item.customMeasurements.topMeters || item.customMeasurements.bottomMeters || item.customMeasurements.dupattaMeters)
     ) {
-      desc += `\n   *Meterage:*`;
+      desc += `\n   Fabric Meterage:`;
       if (item.customMeasurements.topMeters) desc += ` Top: ${item.customMeasurements.topMeters};`;
       if (item.customMeasurements.bottomMeters) desc += ` Bottom: ${item.customMeasurements.bottomMeters};`;
       if (item.customMeasurements.dupattaMeters) desc += ` Dupatta: ${item.customMeasurements.dupattaMeters};`;

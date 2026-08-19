@@ -211,18 +211,16 @@ export default function CartDrawer() {
                 </div>
 
                 <div className="space-y-2">
-                  {/* WhatsApp Direct Booking Button */}
-                  <a
-                    href={whatsAppCheckoutUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() => { clearCart(); closeCart(); }}
+                  {/* Proceed to Checkout & Booking Details */}
+                  <Link
+                    href="/cart"
+                    onClick={closeCart}
                     className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-body font-bold rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 group"
                   >
                     <MessageCircle size={18} className="fill-white/20" />
-                    <span>Book via WhatsApp ({DISPLAY_WHATSAPP_NUMBER})</span>
+                    <span>Proceed to Booking ({DISPLAY_WHATSAPP_NUMBER})</span>
                     <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                  </a>
+                  </Link>
 
                   {/* View Full Cart Button */}
                   <Link
@@ -231,7 +229,7 @@ export default function CartDrawer() {
                     className="w-full py-3 px-4 bg-brand-primary hover:bg-brand-accent text-white text-xs font-body font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
                   >
                     <ShoppingBag size={15} />
-                    View Bag & Full Checkout
+                    View Bag Details
                   </Link>
                 </div>
               </div>
