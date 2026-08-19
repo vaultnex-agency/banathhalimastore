@@ -1,45 +1,36 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useState, useEffect } from "react";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
-import { Search, Heart, User, ShoppingBag, X, Check } from "lucide-react";
+import { Search, Heart, User, ShoppingBag, X, Check, Menu, Package, Info, ChevronRight } from "lucide-react";
 import { brand } from "@/lib/tokens";
 import SearchOverlay from "@/components/search/SearchOverlay";
 import { useCart } from "@/context/CartContext";
 
+const menuLinks = [
+  { href: "/about",           label: "About",           icon: Info,    description: "Our story & craftsmanship" },
+  { href: "/track-order",     label: "Track My Order",  icon: Package, description: "Check your order status"   },
+  { href: "/account",         label: "My Account",      icon: User,    description: "Profile & order history"   },
+];
+
 export default function SiteHeader() {
   const [searchOpen, setSearchOpen] = useState(false);
+  const [menuOpen,   setMenuOpen]   = useState(false);
   const { totalItems, openCart, toastNotice, dismissToast } = useCart();
   const [wishlistCount] = useState(0);
   const { scrollY } = useScroll();
 
-  // Scroll animations for smooth transition from 75% translucent white to 92% opaque white
-  const headerBg = useTransform(
-    scrollY,
-    [0, 60],
-    ["rgba(255, 255, 255, 0.75)", "rgba(255, 255, 255, 0.92)"]
-  );
-  const headerBorder = useTransform(
-    scrollY,
-    [0, 60],
-    ["rgba(255, 255, 255, 0.35)", "rgba(229, 229, 226, 0.6)"]
-  );
-  const headerShadow = useTransform(
-    scrollY,
-    [0, 60],
-    ["0 2px 12px rgba(0, 0, 0, 0.03)", "0 4px 16px rgba(0, 0, 0, 0.05)"]
-  );
+  // Scroll animations
+  const headerBg     = useTransform(scrollY, [0, 60], ["rgba(255,255,255,0.75)", "rgba(255,255,255,0.92)"]);
+  const headerBorder = useTransform(scrollY, [0, 60], ["rgba(255,255,255,0.35)", "rgba(229,229,226,0.6)"]);
+  const headerShadow = useTransform(scrollY, [0, 60], ["0 2px 12px rgba(0,0,0,0.03)", "0 4px 16px rgba(0,0,0,0.05)"]);
 
-  // Prevent body scroll when search is open
+  // Lock body scroll when menu or search is open
   useEffect(() => {
-    if (searchOpen) document.body.style.overflow = "hidden";
-    else document.body.style.overflow = "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [searchOpen]);
+    document.body.style.overflow = (searchOpen || menuOpen) ? "hidden" : "";
+    return () => { document.body.style.overflow = ""; };
+  }, [searchOpen, menuOpen]);
 
   return (
     <>
@@ -53,35 +44,48 @@ export default function SiteHeader() {
         }}
         className="sticky top-0 z-40 w-full border-b transition-colors duration-200"
       >
-        <div className="max-w-7xl mx-auto px-4 md:px-6 h-14 md:h-16 flex items-center justify-between gap-4">
-          {/* Logo */}
-          <Link href="/" className="flex-shrink-0 min-h-0 min-w-0">
-            <Image
-              src="/bh-logo.png"
-              alt={brand.name}
-              width={160}
-              height={56}
-              priority
-              className="h-11 md:h-14 w-auto object-contain"
-            />
-          </Link>
+        <div className="max-w-7xl mx-auto px-4 md:px-6 h-14 md:h-16 grid grid-cols-3 items-center">
 
-          {/* Right Action Icons */}
-          <div className="flex items-center gap-1 md:gap-1.5 relative">
-            {/* Search Button */}
+          {/* Left — hamburger + search */}
+          <div className="flex items-center gap-0.5 justify-self-start">
+            <button
+              onClick={() => setMenuOpen(true)}
+              aria-label="Open menu"
+              className="p-2 md:p-2.5 rounded-full text-neutral-700 hover:text-neutral-950 hover:bg-neutral-100/70 transition-colors"
+            >
+              <Menu size={20} strokeWidth={1.5} />
+            </button>
             <button
               onClick={() => setSearchOpen(true)}
               aria-label="Search catalog"
-              className="relative p-2 md:p-2.5 rounded-full text-neutral-800 hover:text-neutral-950 hover:bg-neutral-100/70 transition-colors"
+              className="p-2 md:p-2.5 rounded-full text-neutral-700 hover:text-neutral-950 hover:bg-neutral-100/70 transition-colors"
             >
               <Search size={20} strokeWidth={1.5} />
             </button>
+          </div>
 
-            {/* Wishlist Button */}
+          {/* Center — brand wordmark */}
+          <Link
+            href="/"
+            className="justify-self-center flex flex-col items-center leading-none group"
+            style={{ fontFamily: brand.fonts.heading }}
+          >
+            <span
+              className="text-[28px] md:text-[34px] font-semibold tracking-tight text-neutral-900 group-hover:text-neutral-600 transition-colors whitespace-nowrap"
+              style={{ letterSpacing: "-0.01em" }}
+            >
+              Banat <span style={{ color: brand.colors.accent }}>Halima</span>
+            </span>
+          </Link>
+
+          {/* Right — wishlist + cart (no account icon) */}
+          <div className="flex items-center gap-0.5 justify-self-end relative">
+
+            {/* Wishlist */}
             <Link
               href="/wishlist"
               aria-label={`Wishlist (${wishlistCount} items)`}
-              className="relative p-2 md:p-2.5 rounded-full text-neutral-800 hover:text-neutral-950 hover:bg-neutral-100/70 transition-colors"
+              className="relative p-2 md:p-2.5 rounded-full text-neutral-700 hover:text-neutral-950 hover:bg-neutral-100/70 transition-colors"
             >
               <Heart size={20} strokeWidth={1.5} />
               {wishlistCount > 0 && (
@@ -91,22 +95,12 @@ export default function SiteHeader() {
               )}
             </Link>
 
-            {/* Account Link */}
-            <Link
-              href="/account"
-              aria-label="Customer Account"
-              title="Customer Account"
-              className="relative p-2 md:p-2.5 rounded-full text-neutral-800 hover:text-neutral-950 hover:bg-neutral-100/70 transition-colors"
-            >
-              <User size={20} strokeWidth={1.5} />
-            </Link>
-
-            {/* Cart Button */}
+            {/* Cart */}
             <div className="relative">
               <button
                 onClick={openCart}
                 aria-label={`Shopping Bag (${totalItems} items)`}
-                className="relative p-2 md:p-2.5 rounded-full text-neutral-800 hover:text-neutral-950 hover:bg-neutral-100/70 transition-all flex items-center justify-center group"
+                className="relative p-2 md:p-2.5 rounded-full text-neutral-700 hover:text-neutral-950 hover:bg-neutral-100/70 transition-all flex items-center justify-center group"
               >
                 <ShoppingBag size={21} strokeWidth={1.6} className="group-hover:scale-105 transition-transform" />
                 {totalItems > 0 && (
@@ -153,6 +147,82 @@ export default function SiteHeader() {
           </div>
         </div>
       </motion.header>
+
+      {/* ── Menu Drawer ─────────────────────────────────────────── */}
+      <AnimatePresence>
+        {menuOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              key="menu-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.25 }}
+              onClick={() => setMenuOpen(false)}
+              className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm"
+            />
+
+            {/* Slide-in panel */}
+            <motion.div
+              key="menu-panel"
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              transition={{ type: "spring", stiffness: 320, damping: 35 }}
+              className="fixed top-0 left-0 z-50 h-full w-72 bg-white shadow-2xl flex flex-col"
+            >
+              {/* Panel header */}
+              <div className="flex items-center justify-between px-6 py-5 border-b border-neutral-100">
+                <span
+                  className="text-[22px] font-semibold text-neutral-900"
+                  style={{ fontFamily: brand.fonts.heading }}
+                >
+                  Banat <span style={{ color: brand.colors.accent }}>Halima</span>
+                </span>
+                <button
+                  onClick={() => setMenuOpen(false)}
+                  aria-label="Close menu"
+                  className="p-2 rounded-full text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Nav links */}
+              <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+                {menuLinks.map(({ href, label, icon: Icon, description }) => (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-neutral-800 hover:bg-neutral-50 hover:text-neutral-950 transition-colors group"
+                  >
+                    <span
+                      className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center"
+                      style={{ backgroundColor: brand.colors.accentLight }}
+                    >
+                      <Icon size={17} strokeWidth={1.6} style={{ color: brand.colors.accent }} />
+                    </span>
+                    <span className="flex-1 min-w-0">
+                      <span className="block text-[15px] font-medium leading-tight">{label}</span>
+                      <span className="block text-[12px] text-neutral-400 mt-0.5">{description}</span>
+                    </span>
+                    <ChevronRight size={15} className="text-neutral-300 group-hover:text-neutral-500 transition-colors flex-shrink-0" />
+                  </Link>
+                ))}
+              </nav>
+
+              {/* Footer */}
+              <div className="px-6 py-5 border-t border-neutral-100">
+                <p className="text-[11px] text-neutral-400 text-center" style={{ fontFamily: brand.fonts.body }}>
+                  {brand.tagline}
+                </p>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       <SearchOverlay isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
     </>
