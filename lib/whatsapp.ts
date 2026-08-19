@@ -2,8 +2,8 @@ import type { CartItem, BookingDetails, FabricMeterage } from "@/types/cart";
 import type { Product } from "@/types/product";
 import { formatPrice } from "@/lib/utils";
 
-export const WHATSAPP_PHONE_NUMBER = "917306613586";
-export const DISPLAY_WHATSAPP_NUMBER = "+91 7306613586";
+export const WHATSAPP_PHONE_NUMBER = "918113824528";
+export const DISPLAY_WHATSAPP_NUMBER = "+91 8113824528";
 
 /**
  * Creates a WhatsApp URL for single product direct booking (Churidar Bits)
