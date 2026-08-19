@@ -10,7 +10,7 @@ import { formatPrice } from "@/lib/utils";
 import { createCartCheckoutWhatsAppUrl, DISPLAY_WHATSAPP_NUMBER } from "@/lib/whatsapp";
 
 export default function CartDrawer() {
-  const { items, isCartOpen, closeCart, updateQuantity, removeFromCart, subtotal, totalItems } =
+  const { items, isCartOpen, closeCart, updateQuantity, removeFromCart, clearCart, subtotal, totalItems } =
     useCart();
 
   // Prevent scroll when drawer is open
@@ -216,6 +216,7 @@ export default function CartDrawer() {
                     href={whatsAppCheckoutUrl}
                     target="_blank"
                     rel="noopener noreferrer"
+                    onClick={() => { clearCart(); closeCart(); }}
                     className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-body font-bold rounded-xl transition-all shadow-sm flex items-center justify-center gap-2 group"
                   >
                     <MessageCircle size={18} className="fill-white/20" />

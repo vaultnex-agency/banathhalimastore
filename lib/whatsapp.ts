@@ -52,18 +52,28 @@ export function createDirectProductWhatsAppUrl(
 }
 
 /**
- * Creates a WhatsApp URL for full cart checkout with customer booking details
+ * Creates a WhatsApp URL for full cart checkout with customer booking details.
+ * Pass orderNumber (received from the API after order creation) to include it
+ * at the top of the message — so the customer always has it in their chat.
  */
 export function createCartCheckoutWhatsAppUrl(
   items: CartItem[],
   totalAmount: number,
   currency: "AED" | "PKR" = "AED",
-  bookingDetails?: BookingDetails
+  bookingDetails?: BookingDetails,
+  orderNumber?: string
 ): string {
   const messageLines: string[] = [
-    `🛍️ *CHURIDAR BITS ORDER BOOKING - BANAT HALIMA*`,
+    `🛍️ *ORDER BOOKING - BANAT HALIMA*`,
     ``,
   ];
+
+  // ── Order reference (shown first so customer sees it immediately) ──
+  if (orderNumber) {
+    messageLines.push(`📋 *Order Reference:* \`${orderNumber}\``);
+    messageLines.push(`🔗 Track your order: ${typeof window !== "undefined" ? window.location.origin : ""}/track-order`);
+    messageLines.push(``);
+  }
 
   if (bookingDetails?.customerName) {
     messageLines.push(`*CUSTOMER DETAILS:*`);
