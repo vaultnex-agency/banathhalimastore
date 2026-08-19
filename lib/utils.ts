@@ -5,9 +5,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatPrice(amount: number, currency: "AED" | "PKR" = "AED"): string {
+export function formatPrice(amount: number, currency: string = "AED"): string {
   const symbols: Record<string, string> = { AED: "AED ", PKR: "Rs " };
-  return `${symbols[currency]}${amount.toLocaleString("en-AE")}`;
+  const symbol = symbols[currency] ?? `${currency} `;
+  return `${symbol}${amount.toLocaleString("en-AE")}`;
 }
 
 export function discountPercent(original: number, sale: number): number {
