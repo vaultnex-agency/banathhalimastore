@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState, useEffect } from "react";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { Search, Heart, User, ShoppingBag, X, Check } from "lucide-react";
@@ -55,9 +56,14 @@ export default function SiteHeader() {
         <div className="max-w-7xl mx-auto px-4 md:px-6 h-14 md:h-16 flex items-center justify-between gap-4">
           {/* Logo */}
           <Link href="/" className="flex-shrink-0 min-h-0 min-w-0">
-            <span className="font-heading text-xl md:text-2xl font-semibold tracking-tight text-neutral-900 leading-none">
-              {brand.name}
-            </span>
+            <Image
+              src="/bh-logo.png"
+              alt={brand.name}
+              width={160}
+              height={56}
+              priority
+              className="h-11 md:h-14 w-auto object-contain"
+            />
           </Link>
 
           {/* Right Action Icons */}

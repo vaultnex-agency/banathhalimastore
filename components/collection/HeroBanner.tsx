@@ -15,20 +15,20 @@ export default function HeroBanner({
   count,
 }: Props) {
   return (
-    <div className="px-4 pt-4 pb-2 max-w-7xl mx-auto">
+    <div className="w-full">
       <motion.div
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="relative w-full rounded-3xl overflow-hidden shadow-lg border border-brand-border/40 aspect-[16/7] md:aspect-[21/8] bg-black"
+        className="relative w-full overflow-hidden aspect-[16/7] md:aspect-[21/8] bg-black"
       >
         {/* Hero Background Image */}
         <Image
-          src="/hero-banner.jpg"
+          src="/bh-hro.png"
           alt="Banat Halima Banner"
           fill
           priority
-          sizes="(max-width: 1200px) 100vw, 1280px"
+          sizes="100vw"
           className="object-cover object-center"
         />
 
@@ -37,7 +37,7 @@ export default function HeroBanner({
 
         {/* Overlay Content */}
         <div className="absolute bottom-0 left-0 right-0 p-6 md:p-10 flex flex-col justify-end text-white">
-          <div className="max-w-2xl">
+          <div className="max-w-2xl mx-4 md:mx-10">
             <span className="inline-block bg-amber-400/20 backdrop-blur-md border border-amber-300/40 text-amber-200 text-[11px] font-body font-semibold px-3 py-1 rounded-full mb-2 tracking-wider uppercase">
               Exclusive Pakistani Collection
             </span>
