@@ -30,11 +30,24 @@ export const metadata: Metadata = {
     "salwar kameez",
     "banat halima",
   ],
+  icons: {
+    icon: "/bh-logo.png",
+    shortcut: "/bh-logo.png",
+    apple: "/bh-logo.png",
+  },
   openGraph: {
     title: "Banat Halima | Premium Pakistani Fashion",
     description: "Exquisite Pakistani churidar suits delivered across the UAE.",
     locale: "en_AE",
     type: "website",
+    images: [
+      {
+        url: "/bh-logo.png",
+        width: 800,
+        height: 800,
+        alt: "Banat Halima Logo",
+      },
+    ],
   },
 };
 

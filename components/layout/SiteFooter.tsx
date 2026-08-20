@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { brand } from "@/lib/tokens";
 import { MessageCircle } from "lucide-react";
 
@@ -30,12 +31,23 @@ export default function SiteFooter() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-10 mb-10">
           {/* Brand column */}
           <div className="col-span-2 md:col-span-1">
-            <p className="font-heading text-2xl font-semibold text-brand-primary mb-1">
-              {brand.name}
-            </p>
-            <p className="font-heading text-sm text-brand-text-muted mb-3">
-              {brand.nameArabic}
-            </p>
+            <div className="flex items-center gap-2.5 mb-2">
+              <Image
+                src="/bh-logo.png"
+                alt="Banat Halima Logo"
+                width={36}
+                height={36}
+                className="h-9 w-auto object-contain"
+              />
+              <div>
+                <p className="font-heading text-2xl font-semibold text-brand-primary leading-none">
+                  {brand.name}
+                </p>
+                <p className="font-heading text-xs text-brand-text-muted mt-0.5">
+                  {brand.nameArabic}
+                </p>
+              </div>
+            </div>
             <p className="text-xs font-body text-brand-text-muted leading-relaxed mb-5">
               {brand.tagline}
             </p>

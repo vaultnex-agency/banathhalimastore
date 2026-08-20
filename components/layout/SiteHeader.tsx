@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState, useEffect } from "react";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { Search, Heart, User, ShoppingBag, X, Check, Menu, Package, Info, ChevronRight } from "lucide-react";
@@ -64,14 +65,22 @@ export default function SiteHeader() {
             </button>
           </div>
 
-          {/* Center — brand wordmark */}
+          {/* Center — brand logo + wordmark */}
           <Link
             href="/"
-            className="justify-self-center flex flex-col items-center leading-none group"
+            className="justify-self-center flex items-center gap-2 group"
             style={{ fontFamily: brand.fonts.heading }}
           >
+            <Image
+              src="/bh-logo.png"
+              alt="Banat Halima Logo"
+              width={40}
+              height={40}
+              className="h-9 md:h-10 w-auto object-contain transition-transform group-hover:scale-105"
+              priority
+            />
             <span
-              className="text-[28px] md:text-[34px] font-semibold tracking-tight text-neutral-900 group-hover:text-neutral-600 transition-colors whitespace-nowrap"
+              className="text-[22px] md:text-[28px] font-semibold tracking-tight text-neutral-900 group-hover:text-neutral-600 transition-colors whitespace-nowrap"
               style={{ letterSpacing: "-0.01em" }}
             >
               Banat <span style={{ color: brand.colors.accent }}>Halima</span>
