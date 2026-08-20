@@ -16,6 +16,7 @@ const cormorant = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://banathhalima.com"),
   title: {
     default: "Banat Halima | Premium Pakistani Fashion",
     template: "%s | Banat Halima",

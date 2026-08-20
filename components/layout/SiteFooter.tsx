@@ -5,7 +5,7 @@ import { MessageCircle } from "lucide-react";
 
 const FOOTER_LINKS = {
   "Customer Care": [
-    { label: "Track My Order", href: "#" },
+    { label: "Track My Order", href: "/track-order" },
     { label: "Returns & Exchanges", href: "#" },
     { label: "Size Guide", href: "#" },
     { label: "FAQ", href: "#" },
